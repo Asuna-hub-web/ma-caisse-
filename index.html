@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ma Caisse</title>
+<meta name="theme-color" content="#142B4B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --field:#FFFFFF;
+  --ink:#142B4B; --muted:#56657A; --line:#D8DEE5;
+  --accent:#F2A413; --on-accent:#142B4B;
+  --gain:#0F7A56; --loss:#B9382A;
+  --hero-bg:#142B4B; --hero-ink:#FFFFFF; --hero-muted:#B8C6DA; --hero-loss:#FFB4A8;
+  --btn-bg:#142B4B; --btn-ink:#FFFFFF;
+  --bar-v:#142B4B; --bar-a:#F2A413;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1826; --surface:#16263B; --field:#0E1826;
+    --ink:#EAF0F7; --muted:#9FB1C8; --line:#2B3F58;
+    --accent:#F5B335; --on-accent:#142B4B;
+    --gain:#3CCB94; --loss:#FF8F7E;
+    --hero-bg:#1D3555; --hero-ink:#FFFFFF; --hero-muted:#B8C6DA; --hero-loss:#FFB4A8;
+    --btn-bg:#F5B335; --btn-ink:#142B4B;
+    --bar-v:#7FA6D9; --bar-a:#F5B335;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1826; --surface:#16263B; --field:#0E1826;
+  --ink:#EAF0F7; --muted:#9FB1C8; --line:#2B3F58;
+  --accent:#F5B335; --on-accent:#142B4B;
+  --gain:#3CCB94; --loss:#FF8F7E;
+  --hero-bg:#1D3555; --hero-ink:#FFFFFF; --hero-muted:#B8C6DA; --hero-loss:#FFB4A8;
+  --btn-bg:#F5B335; --btn-ink:#142B4B;
+  --bar-v:#7FA6D9; --bar-a:#F5B335;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px;line-height:1.4;font-variant-numeric:tabular-nums;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:560px;margin:0 auto;padding:12px 16px 120px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:8px 0 16px}
+.brand{font-size:28px;font-weight:800;letter-spacing:-.02em}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+select,input,button{font:inherit;color:inherit}
+select.cur{
+  height:44px;padding:0 12px;border:2px solid var(--line);border-radius:12px;max-width:168px;text-overflow:ellipsis;
+  background:var(--field);color:var(--ink);font-weight:600;
+}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+h2{font-size:20px;font-weight:800;letter-spacing:-.01em;margin:28px 0 12px}
+p{margin:0 0 12px}
+
+.seg{display:flex;gap:6px;padding:4px;border:2px solid var(--line);border-radius:16px;background:var(--surface);margin-bottom:16px}
+.seg button{
+  flex:1;min-height:48px;border:0;border-radius:12px;background:transparent;
+  font-weight:600;font-size:16px;color:var(--muted);cursor:pointer;padding:0 6px;
+}
+.seg button[aria-pressed="true"]{background:var(--btn-bg);color:var(--btn-ink)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.hero{background:var(--hero-bg);color:var(--hero-ink);border-radius:26px;padding:22px 20px;margin-bottom:14px}
+.hero .lbl{color:var(--hero-muted);font-size:16px;font-weight:600}
+.hero .big{font-size:clamp(38px,12vw,56px);font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:4px 0 16px;color:var(--accent);word-break:break-word}
+.hero .big.neg{color:var(--hero-loss)}
+.hero .two{display:flex;gap:24px}
+.hero .two div{flex:1}
+.hero .two span{display:block;color:var(--hero-muted);font-size:14px}
+.hero .two strong{font-size:20px;font-weight:700}
+.hero-note{font-size:14px;color:var(--muted);margin:0 4px 14px}
+
+.field{margin-bottom:14px}
+.field label,.field .lbl{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field .hint{font-size:14px;color:var(--muted);margin:6px 0 0}
+input[type=text],input[type=number],input[type=tel]{
+  width:100%;height:54px;padding:0 14px;font-size:19px;
+  border:2px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);
+}
+input::placeholder{color:var(--muted);opacity:.7}
+.row2{display:flex;gap:12px}
+.row2 .field{flex:1;min-width:0}
+
+.btn{
+  display:block;width:100%;min-height:56px;padding:0 18px;border:0;border-radius:14px;
+  background:var(--btn-bg);color:var(--btn-ink);font-size:18px;font-weight:700;cursor:pointer;
+}
+.btn.small{min-height:44px;width:auto;font-size:16px;padding:0 16px;border-radius:12px}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn.wa{background:#1F9D55;color:#fff}
+.btn:active{transform:scale(.99)}
+
+.list-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.list-row:first-child{border-top:0}
+.list-row .name{font-weight:600;overflow-wrap:anywhere}
+.list-row .sub{font-size:14px;color:var(--muted)}
+.amt{font-weight:800;white-space:nowrap}
+.amt.plus{color:var(--gain)}
+.amt.minus{color:var(--loss)}
+.del{border:0;background:transparent;color:var(--muted);font-size:14px;min-height:44px;padding:0 8px;cursor:pointer;text-decoration:underline}
+.del.armed{color:var(--loss);font-weight:700}
+
+.empty{text-align:left}
+.empty strong{display:block;font-size:19px;margin-bottom:6px}
+.empty p{color:var(--muted)}
+
+.legend{display:flex;gap:16px;font-size:14px;color:var(--muted);margin-bottom:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+svg.chart{width:100%;height:auto;display:block}
+
+.debt-card{border-radius:18px}
+.offline{background:var(--accent);color:var(--on-accent);border-radius:14px;padding:10px 14px;font-weight:600;font-size:15px;margin-bottom:14px}
+.field .hint.warn{color:var(--loss);font-weight:600}
+.qty{font-size:28px;font-weight:800;line-height:1;text-align:right}
+.qty.low{color:var(--loss)}
+.qtylbl{font-size:13px;color:var(--muted);text-align:right}
+.lowtag{font-size:14px;font-weight:700;color:var(--loss);margin-top:2px}
+.badge{position:absolute;top:4px;left:calc(50% + 4px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--loss);color:var(--surface);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.stock-card .sub{font-size:14px;color:var(--muted)}
+select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);font-size:16px;font-weight:600;text-overflow:ellipsis}
+.debt-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.debt-head .name{font-size:20px;font-weight:800}
+.debt-head .owed{font-size:22px;font-weight:800;color:var(--loss)}
+.debt-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.payline{display:flex;gap:10px;margin-top:12px}
+.payline input{flex:1}
+.payline .btn{width:auto}
+
+.tag{
+  position:relative;background:var(--accent);color:var(--on-accent);
+  padding:20px 22px 20px 60px;margin:4px 0 16px;
+  clip-path:polygon(30px 0,100% 0,100% 100%,30px 100%,0 50%);
+}
+.tag::before{content:"";position:absolute;left:32px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--bg)}
+.tag .lbl{font-size:16px;font-weight:600}
+.tag .price{font-size:clamp(34px,11vw,50px);font-weight:800;letter-spacing:-.03em;line-height:1.05;word-break:break-word}
+.tag.idle .price{font-size:26px;font-weight:600}
+.callout{border-radius:14px;padding:12px 14px;margin:0 0 14px;font-weight:600;border:2px solid var(--line)}
+.callout.bad{border-color:var(--loss);color:var(--loss)}
+.callout.good{border-color:var(--gain);color:var(--gain)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.tabs-in{display:flex;max-width:560px;margin:0 auto}
+.tabs button{
+  flex:1;min-width:0;position:relative;min-height:66px;border:0;background:transparent;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-size:12px;font-weight:600;cursor:pointer;
+}
+.tabs .ic{width:42px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
+.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-current="page"]{color:var(--ink)}
+.tabs button[aria-current="page"] .ic{background:var(--accent);color:var(--on-accent)}
+
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:600;
+  z-index:10;max-width:90%;text-align:center;
+}
+@media (prefers-reduced-motion:no-preference){
+  .toast{animation:pop .18s ease-out}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Ma Caisse</div>
+    <label class="sr-only" for="cur">Monnaie</label>
+    <select id="cur" class="cur">
+      <optgroup label="Afrique">
+        <option value="FCFA">FCFA – Franc CFA (XOF / XAF)</option>
+        <option value="DZD">DZD – Dinar algérien</option>
+        <option value="AOA">AOA – Kwanza angolais</option>
+        <option value="BWP">BWP – Pula botswanais</option>
+        <option value="BIF">BIF – Franc burundais</option>
+        <option value="CVE">CVE – Escudo cap-verdien</option>
+        <option value="KMF">KMF – Franc comorien</option>
+        <option value="CDF">CDF – Franc congolais</option>
+        <option value="DJF">DJF – Franc djiboutien</option>
+        <option value="EGP">EGP – Livre égyptienne</option>
+        <option value="ERN">ERN – Nakfa érythréen</option>
+        <option value="SZL">SZL – Lilangeni eswatinien</option>
+        <option value="ETB">ETB – Birr éthiopien</option>
+        <option value="GMD">GMD – Dalasi gambien</option>
+        <option value="GHS">GHS – Cedi ghanéen</option>
+        <option value="GNF">GNF – Franc guinéen</option>
+        <option value="KES">KES – Shilling kényan</option>
+        <option value="LSL">LSL – Loti lesothan</option>
+        <option value="LRD">LRD – Dollar libérien</option>
+        <option value="LYD">LYD – Dinar libyen</option>
+        <option value="MGA">MGA – Ariary malgache</option>
+        <option value="MWK">MWK – Kwacha malawien</option>
+        <option value="MRU">MRU – Ouguiya mauritanien</option>
+        <option value="MUR">MUR – Roupie mauricienne</option>
+        <option value="MAD">MAD – Dirham marocain</option>
+        <option value="MZN">MZN – Metical mozambicain</option>
+        <option value="NAD">NAD – Dollar namibien</option>
+        <option value="NGN">NGN – Naira nigérian</option>
+        <option value="RWF">RWF – Franc rwandais</option>
+        <option value="STN">STN – Dobra santoméen</option>
+        <option value="SCR">SCR – Roupie seychelloise</option>
+        <option value="SLE">SLE – Leone sierra-léonais</option>
+        <option value="SOS">SOS – Shilling somalien</option>
+        <option value="ZAR">ZAR – Rand sud-africain</option>
+        <option value="SSP">SSP – Livre sud-soudanaise</option>
+        <option value="SDG">SDG – Livre soudanaise</option>
+        <option value="TZS">TZS – Shilling tanzanien</option>
+        <option value="TND">TND – Dinar tunisien</option>
+        <option value="UGX">UGX – Shilling ougandais</option>
+        <option value="ZMW">ZMW – Kwacha zambien</option>
+        <option value="ZWG">ZWG – Zimbabwe Gold</option>
+      </optgroup>
+      <optgroup label="Autres monnaies">
+        <option value="EUR">EUR – Euro</option>
+        <option value="JPY">JPY – Yen japonais</option>
+        <option value="USD">USD – Dollar américain</option>
+      </optgroup>
+    </select>
+  </header>
+
+  <div id="offline" class="offline" role="status" hidden>Pas d'internet : tout reste enregistré sur ton téléphone.</div>
+
+  <!-- BILAN -->
+  <section id="tab-bilan" aria-label="Bilan">
+    <div class="seg" id="periodSeg" role="group" aria-label="Période">
+      <button data-period="day" aria-pressed="true">Aujourd'hui</button>
+      <button data-period="week" aria-pressed="false">7 jours</button>
+      <button data-period="month" aria-pressed="false">Ce mois</button>
+    </div>
+    <div id="bilanBody"></div>
+  </section>
+
+  <!-- CAISSE -->
+  <section id="tab-caisse" aria-label="Caisse" hidden>
+    <div class="seg" id="kindSeg" role="group" aria-label="Type d'opération">
+      <button data-kind="v" aria-pressed="true">Vente</button>
+      <button data-kind="a" aria-pressed="false">Achat ou dépense</button>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label for="fLabel" id="fLabelText">Produit vendu</label>
+        <input id="fLabel" type="text" list="prodList" autocomplete="off" placeholder="Ex : riz 5 kg">
+        <datalist id="prodList"></datalist>
+        <p class="hint" id="stockHint" hidden></p>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="fQty">Quantité</label>
+          <input id="fQty" type="number" inputmode="decimal" min="0" step="any" value="1">
+        </div>
+        <div class="field">
+          <label for="fAmt">Montant total</label>
+          <input id="fAmt" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">Paiement</span>
+        <div class="seg" id="paySeg" role="group" aria-label="Mode de paiement" style="margin-bottom:0">
+          <button data-pay="cash" aria-pressed="true">Espèces</button>
+          <button data-pay="momo" aria-pressed="false">Mobile money</button>
+          <button data-pay="credit" id="creditBtn" aria-pressed="false">À crédit</button>
+        </div>
+      </div>
+      <div id="creditBox" hidden>
+        <div class="field">
+          <label for="fClient">Nom du client</label>
+          <input id="fClient" type="text" list="clientList" autocomplete="off" placeholder="Ex : Awa">
+          <datalist id="clientList"></datalist>
+        </div>
+        <div class="field">
+          <label for="fPhone">Téléphone du client (facultatif)</label>
+          <input id="fPhone" type="tel" inputmode="tel" placeholder="Avec l'indicatif, ex : 221770000000">
+          <p class="hint">Sert à envoyer un rappel WhatsApp.</p>
+        </div>
+      </div>
+      <button class="btn" id="saveBtn">Enregistrer la vente</button>
+    </div>
+    <h2>Aujourd'hui</h2>
+    <div id="todayList"></div>
+  </section>
+
+  <!-- STOCK -->
+  <section id="tab-stock" aria-label="Stock" hidden>
+    <div id="stockTop"></div>
+    <button class="btn ghost" id="stToggle" type="button" style="margin-bottom:14px">Ajouter un produit</button>
+    <div class="card" id="stAddCard" hidden>
+      <div class="field">
+        <label for="stName">Nom du produit</label>
+        <input id="stName" type="text" autocomplete="off" placeholder="Ex : riz 5 kg">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="stQty">Quantité en stock</label>
+          <input id="stQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </div>
+        <div class="field">
+          <label for="stMin">Alerte quand il reste</label>
+          <input id="stMin" type="number" inputmode="decimal" min="0" step="any" value="3">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="stBuy">Prix d'achat (1 unité)</label>
+          <input id="stBuy" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </div>
+        <div class="field">
+          <label for="stSell">Prix de vente (1 unité)</label>
+          <input id="stSell" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </div>
+      </div>
+      <div class="field">
+        <p class="hint">Les prix sont facultatifs. Avec le prix de vente, le montant se remplit tout seul à la caisse.</p>
+      </div>
+      <button class="btn" id="stSave" type="button">Enregistrer le produit</button>
+    </div>
+    <div id="stockBody"></div>
+  </section>
+
+  <!-- PRIX -->
+  <section id="tab-prix" aria-label="Calculer un prix" hidden>
+    <div class="card">
+      <div class="row2">
+        <div class="field">
+          <label for="pBuy">Prix d'achat d'une unité</label>
+          <input id="pBuy" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </div>
+        <div class="field">
+          <label for="pQty">Quantité achetée</label>
+          <input id="pQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+        </div>
+      </div>
+      <div class="field">
+        <label for="pFees">Frais en plus pour tout le lot (transport, sac, taxes)</label>
+        <input id="pFees" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="pLoss">Pertes prévues (%)</label>
+          <input id="pLoss" type="number" inputmode="decimal" min="0" max="90" step="any" value="0">
+        </div>
+        <div class="field">
+          <label for="pMargin">Marge voulue (%)</label>
+          <input id="pMargin" type="number" inputmode="decimal" min="0" step="any" value="30">
+        </div>
+      </div>
+      <p class="hint" style="font-size:14px;color:var(--muted);margin:0">La marge s'ajoute au coût réel. Avec 30 % sur un coût de 1 000, tu gagnes 300 par unité. Les pertes, ce sont les produits abîmés, périmés ou volés.</p>
+    </div>
+    <div id="pOut"></div>
+    <div class="card">
+      <div class="field" style="margin-bottom:0">
+        <label for="pNow">Tu vends déjà à quel prix ? (facultatif)</label>
+        <input id="pNow" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+      </div>
+    </div>
+    <div id="pNowOut"></div>
+  </section>
+
+  <!-- CHANGE -->
+  <section id="tab-change" aria-label="Convertisseur de monnaies" hidden>
+    <div class="card">
+      <div class="field">
+        <label for="cvAmt">Montant à convertir</label>
+        <input id="cvAmt" type="number" inputmode="decimal" min="0" step="any" value="1">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="cvFrom">De</label>
+          <select id="cvFrom" class="cvs"></select>
+        </div>
+        <div class="field">
+          <label for="cvTo">Vers</label>
+          <select id="cvTo" class="cvs"></select>
+        </div>
+      </div>
+      <button class="btn ghost small" id="cvSwap" type="button">Inverser les monnaies</button>
+      <div class="field" style="margin:16px 0 0">
+        <label for="cvRate" id="cvRateLbl">Taux</label>
+        <input id="cvRate" type="number" inputmode="decimal" min="0" step="any" placeholder="0">
+      </div>
+    </div>
+    <div id="cvOut"></div>
+    <p id="cvNote" class="hero-note"></p>
+  </section>
+
+  <!-- DETTES -->
+  <section id="tab-dettes" aria-label="Dettes des clients" hidden>
+    <div id="dettesBody"></div>
+  </section>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<nav class="tabs" aria-label="Navigation">
+  <div class="tabs-in">
+    <button data-tab="bilan" aria-current="page"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></span>Bilan</button>
+    <button data-tab="caisse"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Caisse</button>
+    <button data-tab="stock"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span>Stock<span class="badge" id="stockBadge" hidden></span></button>
+    <button data-tab="prix"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8L3 12z"/><circle cx="7.5" cy="8.5" r="1.2"/></svg></span>Prix</button>
+    <button data-tab="change"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg></span>Change</button>
+    <button data-tab="dettes"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h11a3 3 0 013 3v11H7a3 3 0 01-3-3V5z"/><path d="M8 10h6M8 14h4"/></svg></span>Dettes</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  var KEY = 'macaisse_v1';
+  var state = { cur: 'FCFA', entries: [], clients: [], payments: [], rates: {}, products: [] };
+  var ui = { tab: 'bilan', period: 'day', kind: 'v', pay: 'cash', armedDel: null, payOpen: null, amtAuto: false, stOpen: null, stDel: null };
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var p = JSON.parse(raw); if (p && typeof p === 'object') { for (var k in state) if (p[k] !== undefined) state[k] = p[k]; } }
+    } catch (e) {}
+  }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  function $(s){ return document.querySelector(s); }
+  function $$(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function num(v){ var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : 0; }
+  function fmt(n){ var v = Math.round(n * 100) / 100; return v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + '\u00A0' + state.cur; }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function dayStart(d){ var x = new Date(d); x.setHours(0,0,0,0); return x; }
+
+  var toastTimer;
+  function toast(msg){
+    var t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.hidden = true; }, 2200);
+  }
+
+  function periodStart(p){
+    var d = dayStart(new Date());
+    if (p === 'week') d.setDate(d.getDate() - 6);
+    if (p === 'month') d.setDate(1);
+    return d.getTime();
+  }
+  function sum(list, type){ return list.filter(function(e){ return e.t === type; }).reduce(function(s, e){ return s + e.amt; }, 0); }
+
+  function balance(c){
+    var cr = state.entries.filter(function(e){ return e.t === 'v' && e.pay === 'credit' && e.cid === c.id; }).reduce(function(s, e){ return s + e.amt; }, 0);
+    var pd = state.payments.filter(function(p){ return p.cid === c.id; }).reduce(function(s, p){ return s + p.amt; }, 0);
+    return Math.max(0, cr - pd);
+  }
+  function totalDebts(){ return state.clients.reduce(function(s, c){ return s + balance(c); }, 0); }
+
+  /* ---------- Onglets ---------- */
+  function showTab(name){
+    ui.tab = name;
+    ['bilan','caisse','stock','prix','change','dettes'].forEach(function(t){ $('#tab-' + t).hidden = (t !== name); });
+    $$('.tabs button').forEach(function(b){
+      if (b.dataset.tab === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    if (name === 'bilan') renderBilan();
+    if (name === 'caisse') { renderToday(); renderLists(); }
+    if (name === 'dettes') renderDettes();
+    if (name === 'change') renderChange();
+    if (name === 'stock') renderStock();
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- Bilan ---------- */
+  var periodText = { day: "aujourd'hui", week: 'sur 7 jours', month: 'ce mois-ci' };
+
+  function renderBilan(){
+    var body = $('#bilanBody');
+    if (!state.entries.length) {
+      body.innerHTML = '<div class="card empty"><strong>Rien d\'enregistré pour l\'instant.</strong><p>Ajoute ta première vente dans la caisse. Le bilan se remplit tout seul.</p><button class="btn" data-go="caisse">Ajouter une vente</button></div>';
+      return;
+    }
+    var start = periodStart(ui.period);
+    var list = state.entries.filter(function(e){ return e.ts >= start; });
+    var v = sum(list, 'v'), a = sum(list, 'a'), profit = v - a;
+    var debts = totalDebts();
+
+    var html = '<div class="hero"><div class="lbl">Bénéfice ' + periodText[ui.period] + '</div>' +
+      '<div class="big' + (profit < 0 ? ' neg' : '') + '">' + fmt(profit) + '</div>' +
+      '<div class="two"><div><span>Ventes</span><strong>' + fmt(v) + '</strong></div><div><span>Dépenses</span><strong>' + fmt(a) + '</strong></div></div></div>' +
+      '<p class="hero-note">Bénéfice = ventes moins dépenses. Une vente à crédit compte dès qu\'elle est faite.</p>';
+
+    html += '<div class="card"><div class="list-row" style="padding-top:0"><div><div class="name">Argent à récupérer chez les clients</div>' +
+      '<div class="sub">' + (debts > 0 ? 'Voir qui doit combien' : 'Personne ne te doit rien') + '</div></div>' +
+      '<div class="amt ' + (debts > 0 ? 'minus' : '') + '">' + fmt(debts) + '</div></div>' +
+      (debts > 0 ? '<button class="btn ghost small" data-go="dettes" style="margin-top:4px">Ouvrir les dettes</button>' : '') + '</div>';
+
+    var lowList = lowProducts();
+    if (lowList.length) {
+      html += '<div class="card"><div class="name" style="font-weight:800;margin-bottom:4px">À réapprovisionner</div>' +
+        lowList.slice(0, 5).map(function(p){
+          return '<div class="list-row"><div class="name">' + esc(p.name) + '</div><div class="amt minus">' + (p.qty <= 0 ? 'Épuisé' : 'Il reste ' + fmtQ(p.qty)) + '</div></div>';
+        }).join('') +
+        '<button class="btn ghost small" data-go="stock" style="margin-top:4px">Ouvrir le stock</button></div>';
+    }
+    html += '<div class="card"><div class="name" style="font-weight:800;margin-bottom:8px">Les 7 derniers jours</div>' + chartHtml() + '</div>';
+
+    var groups = {};
+    list.filter(function(e){ return e.t === 'v'; }).forEach(function(e){
+      var key = (e.label || 'Vente').trim().toLowerCase();
+      if (!groups[key]) groups[key] = { name: e.label || 'Vente', amt: 0, qty: 0 };
+      groups[key].amt += e.amt; groups[key].qty += e.qty || 1;
+    });
+    var top = Object.keys(groups).map(function(k){ return groups[k]; }).sort(function(x, y){ return y.amt - x.amt; }).slice(0, 5);
+    if (top.length) {
+      html += '<div class="card"><div class="name" style="font-weight:800;margin-bottom:4px">Ce qui rapporte le plus ' + periodText[ui.period] + '</div>';
+      top.forEach(function(p){
+        html += '<div class="list-row"><div><div class="name">' + esc(p.name) + '</div><div class="sub">' + (Math.round(p.qty * 100) / 100) + ' vendu(s)</div></div><div class="amt">' + fmt(p.amt) + '</div></div>';
+      });
+      html += '</div>';
+    }
+    body.innerHTML = html;
+  }
+
+  function chartHtml(){
+    var days = [], i;
+    for (i = 6; i >= 0; i--) { var d = dayStart(new Date()); d.setDate(d.getDate() - i); days.push(d); }
+    var data = days.map(function(d){
+      var s = d.getTime(); var n = new Date(d); n.setDate(n.getDate() + 1); var e = n.getTime();
+      var l = state.entries.filter(function(x){ return x.ts >= s && x.ts < e; });
+      return { v: sum(l, 'v'), a: sum(l, 'a'), lbl: d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '').slice(0, 3) };
+    });
+    var max = Math.max.apply(null, data.map(function(x){ return Math.max(x.v, x.a); }).concat([1]));
+    var svg = '<svg class="chart" viewBox="0 0 320 160" role="img" aria-label="Ventes et dépenses des 7 derniers jours">';
+    svg += '<line x1="0" y1="130" x2="320" y2="130" stroke="var(--line)" stroke-width="1"/>';
+    data.forEach(function(x, idx){
+      var gx = 12 + idx * 44;
+      var hv = Math.round(x.v / max * 110), ha = Math.round(x.a / max * 110);
+      svg += '<rect x="' + gx + '" y="' + (130 - hv) + '" width="16" height="' + hv + '" rx="3" fill="var(--bar-v)"/>';
+      svg += '<rect x="' + (gx + 18) + '" y="' + (130 - ha) + '" width="16" height="' + ha + '" rx="3" fill="var(--bar-a)"/>';
+      svg += '<text x="' + (gx + 17) + '" y="150" text-anchor="middle" font-size="12" fill="var(--muted)">' + esc(x.lbl) + '</text>';
+    });
+    svg += '</svg>';
+    return '<div class="legend"><span><i style="background:var(--bar-v)"></i>Ventes</span><span><i style="background:var(--bar-a)"></i>Dépenses</span></div>' + svg;
+  }
+
+  /* ---------- Caisse ---------- */
+  function setKind(k){
+    ui.kind = k;
+    $$('#kindSeg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.kind === k ? 'true' : 'false'); });
+    $('#fLabelText').textContent = k === 'v' ? 'Produit vendu' : 'Achat ou dépense';
+    $('#fLabel').placeholder = k === 'v' ? 'Ex : riz 5 kg' : 'Ex : stock, transport, loyer';
+    $('#saveBtn').textContent = k === 'v' ? 'Enregistrer la vente' : 'Enregistrer la dépense';
+    $('#creditBtn').hidden = (k === 'a');
+    if (k === 'a' && ui.pay === 'credit') setPay('cash'); else setPay(ui.pay);
+    updateStockHint();
+    renderLists();
+  }
+  function setPay(p){
+    ui.pay = p;
+    $$('#paySeg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.pay === p ? 'true' : 'false'); });
+    $('#creditBox').hidden = !(p === 'credit' && ui.kind === 'v');
+  }
+  function renderLists(){
+    var seen = {}, opts = '';
+    if (ui.kind === 'v') state.products.forEach(function(p){ seen[p.name.toLowerCase()] = 1; opts += '<option value="' + esc(p.name) + '">'; });
+    state.entries.filter(function(e){ return e.t === ui.kind && e.label; }).slice().reverse().forEach(function(e){
+      var k = e.label.toLowerCase(); if (!seen[k] && Object.keys(seen).length < 30) { seen[k] = 1; opts += '<option value="' + esc(e.label) + '">'; }
+    });
+    $('#prodList').innerHTML = opts;
+    $('#clientList').innerHTML = state.clients.map(function(c){ return '<option value="' + esc(c.name) + '">'; }).join('');
+  }
+  function renderToday(){
+    var start = periodStart('day');
+    var list = state.entries.filter(function(e){ return e.ts >= start; }).sort(function(a, b){ return b.ts - a.ts; });
+    var box = $('#todayList');
+    if (!list.length) { box.innerHTML = '<div class="card empty"><p style="margin:0">Aucune opération aujourd\'hui. Enregistre ta première vente ci-dessus.</p></div>'; return; }
+    var payText = { cash: 'Espèces', momo: 'Mobile money', credit: 'À crédit' };
+    box.innerHTML = '<div class="card">' + list.map(function(e){
+      var cl = e.cid ? state.clients.filter(function(c){ return c.id === e.cid; })[0] : null;
+      var sub = payText[e.pay] + (cl ? ' : ' + esc(cl.name) : '') + ((e.qty && e.qty !== 1) ? ', quantité ' + e.qty : '');
+      var armed = ui.armedDel === e.id;
+      return '<div class="list-row"><div style="min-width:0"><div class="name">' + esc(e.label || (e.t === 'v' ? 'Vente' : 'Dépense')) + '</div><div class="sub">' + sub + '</div></div>' +
+        '<div style="text-align:right"><div class="amt ' + (e.t === 'v' ? 'plus' : 'minus') + '">' + (e.t === 'v' ? '+' : '−') + fmt(e.amt) + '</div>' +
+        '<button class="del' + (armed ? ' armed' : '') + '" data-del="' + e.id + '">' + (armed ? 'Confirmer' : 'Supprimer') + '</button></div></div>';
+    }).join('') + '</div>';
+  }
+  function saveEntry(){
+    var amt = num($('#fAmt').value);
+    if (!(amt > 0)) { toast('Entre le montant.'); $('#fAmt').focus(); return; }
+    var qty = num($('#fQty').value); if (!(qty > 0)) qty = 1;
+    var label = $('#fLabel').value.trim();
+    var entry = { id: uid(), t: ui.kind, label: label, qty: qty, amt: amt, pay: ui.pay, ts: Date.now() };
+    if (ui.kind === 'v' && ui.pay === 'credit') {
+      var name = $('#fClient').value.trim();
+      if (!name) { toast('Ajoute le nom du client.'); $('#fClient').focus(); return; }
+      var phone = $('#fPhone').value.replace(/\D/g, '');
+      var cl = state.clients.filter(function(c){ return c.name.toLowerCase() === name.toLowerCase(); })[0];
+      if (!cl) { cl = { id: uid(), name: name, phone: phone }; state.clients.push(cl); }
+      else if (phone && !cl.phone) cl.phone = phone;
+      entry.cid = cl.id;
+    }
+    var msg = ui.kind === 'v' ? 'Vente enregistrée' : 'Dépense enregistrée';
+    var prod = ui.kind === 'v' ? findProduct(label) : null;
+    if (prod) {
+      var dec = Math.min(qty, prod.qty);
+      prod.qty = Math.round((prod.qty - dec) * 1000) / 1000;
+      entry.pid = prod.id; entry.dec = dec;
+      if (dec < qty) msg += '. Stock épuisé';
+      else if (prod.qty <= prod.min) msg += '. Stock faible : il reste ' + fmtQ(prod.qty);
+    }
+    state.entries.push(entry); save();
+    $('#fLabel').value = ''; $('#fQty').value = '1'; $('#fAmt').value = ''; $('#fClient').value = ''; $('#fPhone').value = '';
+    ui.amtAuto = false; updateStockHint(); updateBadge();
+    toast(msg);
+    renderToday(); renderLists();
+  }
+
+  /* ---------- Prix ---------- */
+  function roundUp(p){
+    var step = p < 10 ? 0.5 : p < 100 ? 5 : p < 1000 ? 25 : 50;
+    return Math.ceil(p / step - 1e-9) * step;
+  }
+  var lastCalc = null;
+  function calcPrix(){
+    var buy = num($('#pBuy').value), qty = num($('#pQty').value), fees = num($('#pFees').value);
+    var loss = Math.min(90, Math.max(0, num($('#pLoss').value))), margin = Math.max(0, num($('#pMargin').value));
+    var out = $('#pOut');
+    if (!(buy > 0 && qty > 0)) {
+      lastCalc = null;
+      out.innerHTML = '<div class="tag idle"><div class="lbl">Prix de vente conseillé</div><div class="price">Remplis le prix d\'achat et la quantité</div></div>';
+      calcNow(); return;
+    }
+    var total = buy * qty + fees, sellable = qty * (1 - loss / 100);
+    var cost = total / sellable, price = roundUp(cost * (1 + margin / 100));
+    var unitProfit = price - cost, allProfit = unitProfit * sellable, real = unitProfit / cost * 100;
+    lastCalc = { cost: cost, price: price };
+    out.innerHTML = '<div class="tag"><div class="lbl">Vends à</div><div class="price">' + fmt(price) + '</div></div>' +
+      '<div class="card">' +
+      '<div class="list-row"><div class="name">Coût réel d\'une unité</div><div class="amt">' + fmt(cost) + '</div></div>' +
+      '<div class="list-row"><div class="name">Bénéfice par unité</div><div class="amt plus">' + fmt(unitProfit) + '</div></div>' +
+      '<div class="list-row"><div class="name">Bénéfice si tout est vendu</div><div class="amt plus">' + fmt(allProfit) + '</div></div>' +
+      '<div class="list-row"><div class="name">Marge réelle après arrondi</div><div class="amt">' + (Math.round(real * 10) / 10) + ' %</div></div>' +
+      '</div>';
+    calcNow();
+  }
+  function calcNow(){
+    var now = num($('#pNow').value), box = $('#pNowOut');
+    if (!(now > 0) || !lastCalc) { box.innerHTML = ''; return; }
+    var diff = now - lastCalc.cost, pct = diff / lastCalc.cost * 100;
+    if (diff < 0) box.innerHTML = '<div class="callout bad">Attention : à ' + fmt(now) + ', tu perds ' + fmt(-diff) + ' sur chaque unité vendue. Le prix minimum pour ne pas perdre est ' + fmt(lastCalc.cost) + '.</div>';
+    else box.innerHTML = '<div class="callout ' + (now < lastCalc.price ? '' : 'good') + '">À ' + fmt(now) + ', tu gagnes ' + fmt(diff) + ' par unité (' + (Math.round(pct * 10) / 10) + ' %).' + (now < lastCalc.price ? ' Pour atteindre ta marge, vends à ' + fmt(lastCalc.price) + '.' : '') + '</div>';
+  }
+
+  /* ---------- Stock ---------- */
+  function findProduct(name){
+    var n = String(name || '').trim().toLowerCase();
+    if (!n) return null;
+    return state.products.filter(function(p){ return p.name.toLowerCase() === n; })[0] || null;
+  }
+  function isLow(p){ return p.qty <= p.min; }
+  function lowProducts(){ return state.products.filter(isLow); }
+  function fmtQ(n){ return (Math.round(n * 1000) / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 3 }); }
+  function updateBadge(){
+    var b = $('#stockBadge'), n = lowProducts().length;
+    b.hidden = !n; b.textContent = n;
+  }
+  function updateNet(){ $('#offline').hidden = (navigator.onLine !== false); }
+
+  function updateStockHint(){
+    var h = $('#stockHint'), p = ui.kind === 'v' ? findProduct($('#fLabel').value) : null;
+    if (!p) { h.hidden = true; h.classList.remove('warn'); return; }
+    var q = num($('#fQty').value) || 1, t;
+    h.hidden = false;
+    if (q > p.qty) { t = 'Attention : il ne reste que ' + fmtQ(p.qty) + ' en stock.'; h.classList.add('warn'); }
+    else {
+      t = 'En stock : ' + fmtQ(p.qty) + '.' + (p.sell > 0 ? ' Prix de vente : ' + fmt(p.sell) + ' l\'unité.' : '');
+      h.classList.remove('warn');
+    }
+    h.textContent = t;
+  }
+  function onLabelQty(){
+    updateStockHint();
+    var p = ui.kind === 'v' ? findProduct($('#fLabel').value) : null;
+    if (p && p.sell > 0) {
+      var fa = $('#fAmt');
+      if (!fa.value || ui.amtAuto) {
+        var q = num($('#fQty').value) || 1;
+        fa.value = String(Math.round(p.sell * q * 100) / 100);
+        ui.amtAuto = true;
+      }
+    }
+  }
+
+  function renderStock(){
+    var top = $('#stockTop'), body = $('#stockBody'), tog = $('#stToggle');
+    if (!state.products.length) {
+      top.innerHTML = '';
+      tog.hidden = true; $('#stAddCard').hidden = false;
+      body.innerHTML = '<p class="hero-note">Ajoute tes produits une seule fois. Ensuite, chaque vente enregistrée à la caisse fait baisser le stock toute seule.</p>';
+      return;
+    }
+    tog.hidden = false;
+    var value = state.products.reduce(function(s, p){ return s + (p.buy > 0 ? p.qty * p.buy : 0); }, 0);
+    top.innerHTML = '<div class="hero"><div class="lbl">Valeur du stock, au prix d\'achat</div><div class="big">' + fmt(value) + '</div>' +
+      '<div class="two"><div><span>Produits</span><strong>' + state.products.length + '</strong></div><div><span>À réapprovisionner</span><strong>' + lowProducts().length + '</strong></div></div></div>';
+    var list = state.products.slice().sort(function(a, b){
+      return ((isLow(b) ? 1 : 0) - (isLow(a) ? 1 : 0)) || a.name.localeCompare(b.name, 'fr');
+    });
+    body.innerHTML = list.map(function(p){
+      var low = isLow(p), open = (ui.stOpen && ui.stOpen.id === p.id) ? ui.stOpen.mode : '';
+      var parts = [];
+      if (p.buy > 0) parts.push('achat ' + fmt(p.buy));
+      if (p.sell > 0) parts.push('vente ' + fmt(p.sell));
+      if (p.buy > 0 && p.sell > 0) parts.push('marge ' + (Math.round((p.sell - p.buy) / p.buy * 1000) / 10) + ' %');
+      var h = '<div class="card stock-card"><div class="debt-head"><div style="min-width:0"><div class="name" style="overflow-wrap:anywhere">' + esc(p.name) + '</div>' +
+        (parts.length ? '<div class="sub">' + esc(parts.join(', ')) + '</div>' : '') +
+        (low ? '<div class="lowtag">' + (p.qty <= 0 ? 'Épuisé' : 'Presque fini') + '</div>' : '') + '</div>' +
+        '<div><div class="qty' + (low ? ' low' : '') + '">' + fmtQ(p.qty) + '</div><div class="qtylbl">en stock</div></div></div>';
+      if (open === 'restock') {
+        h += '<div class="row2" style="margin-top:12px"><div class="field" style="margin:0"><label for="rsQty">Quantité reçue</label><input id="rsQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>' +
+          '<div class="field" style="margin:0"><label for="rsCost">Coût total (facultatif)</label><input id="rsCost" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div></div>' +
+          '<p style="font-size:14px;color:var(--muted);margin:8px 0 0">Si tu entres le coût, il est noté dans tes dépenses.</p>' +
+          '<div class="debt-actions"><button class="btn small" data-st="ok" data-id="' + p.id + '">Valider</button><button class="btn ghost small" data-st="cancel" data-id="' + p.id + '">Annuler</button></div>';
+      } else if (open === 'fix') {
+        h += '<div class="field" style="margin:12px 0 0"><label for="fxQty">Quantité réelle en stock</label><input id="fxQty" type="number" inputmode="decimal" min="0" step="any" value="' + p.qty + '"></div>' +
+          '<div class="debt-actions"><button class="btn small" data-st="ok" data-id="' + p.id + '">Valider</button><button class="btn ghost small" data-st="cancel" data-id="' + p.id + '">Annuler</button></div>';
+      } else {
+        var armed = ui.stDel === p.id;
+        h += '<div class="debt-actions"><button class="btn small" data-st="restock" data-id="' + p.id + '">Réapprovisionner</button><button class="btn ghost small" data-st="fix" data-id="' + p.id + '">Corriger</button>' +
+          '<button class="del' + (armed ? ' armed' : '') + '" data-st="del" data-id="' + p.id + '">' + (armed ? 'Confirmer' : 'Supprimer') + '</button></div>';
+      }
+      return h + '</div>';
+    }).join('');
+    if (ui.stOpen) { var f = $('#rsQty') || $('#fxQty'); if (f) { f.focus(); if (f.select) f.select(); } }
+  }
+
+  function saveProduct(){
+    var name = $('#stName').value.trim();
+    if (!name) { toast('Entre le nom du produit.'); $('#stName').focus(); return; }
+    if (findProduct(name)) { toast('Ce produit existe déjà. Utilise Réapprovisionner.'); return; }
+    var minV = $('#stMin').value === '' ? 3 : num($('#stMin').value);
+    state.products.push({
+      id: uid(), name: name,
+      qty: Math.max(0, num($('#stQty').value)),
+      buy: Math.max(0, num($('#stBuy').value)),
+      sell: Math.max(0, num($('#stSell').value)),
+      min: Math.max(0, minV)
+    });
+    save();
+    ['#stName', '#stQty', '#stBuy', '#stSell'].forEach(function(id){ $(id).value = ''; });
+    $('#stMin').value = '3';
+    $('#stAddCard').hidden = true;
+    toast('Produit enregistré');
+    updateBadge(); renderStock();
+  }
+
+  function stockAction(a, id){
+    var p = state.products.filter(function(x){ return x.id === id; })[0];
+    if (a === 'restock' || a === 'fix') { ui.stOpen = { id: id, mode: a }; return renderStock(); }
+    if (a === 'cancel') { ui.stOpen = null; return renderStock(); }
+    if (!p) return;
+    if (a === 'del') {
+      if (ui.stDel === id) {
+        state.products = state.products.filter(function(x){ return x.id !== id; });
+        save(); ui.stDel = null; toast('Produit supprimé'); updateBadge(); return renderStock();
+      }
+      ui.stDel = id;
+      setTimeout(function(){ if (ui.stDel === id) { ui.stDel = null; renderStock(); } }, 3000);
+      return renderStock();
+    }
+    if (a === 'ok' && ui.stOpen && ui.stOpen.id === id) {
+      if (ui.stOpen.mode === 'restock') {
+        var q = num($('#rsQty').value);
+        if (!(q > 0)) { toast('Entre la quantité reçue.'); return; }
+        var cost = num($('#rsCost').value);
+        p.qty = Math.round((p.qty + q) * 1000) / 1000;
+        if (cost > 0) state.entries.push({ id: uid(), t: 'a', label: 'Stock : ' + p.name, qty: q, amt: cost, pay: 'cash', ts: Date.now() });
+        save(); toast('Stock mis à jour');
+      } else {
+        var raw = $('#fxQty').value;
+        if (raw === '' || num(raw) < 0) { toast('Entre la quantité en stock.'); return; }
+        p.qty = num(raw); save(); toast('Stock corrigé');
+      }
+      ui.stOpen = null; updateBadge(); renderStock();
+    }
+  }
+
+  /* ---------- Change ---------- */
+  var PEG = { EUR: 1, FCFA: 655.957, KMF: 491.96775, CVE: 110.265 };
+  function getRate(a, b){
+    if (a === b) return { r: 1, src: 'same' };
+    if (PEG[a] && PEG[b]) return { r: PEG[b] / PEG[a], src: 'peg' };
+    var d = state.rates[a + '>' + b], i = state.rates[b + '>' + a];
+    if (d && d.r > 0) return { r: d.r, ts: d.ts, src: 'user' };
+    if (i && i.r > 0) return { r: 1 / i.r, ts: i.ts, src: 'user' };
+    return null;
+  }
+  function fmtN(n){ return (Math.round(n * 100) / 100).toLocaleString('fr-FR', { maximumFractionDigits: 2 }); }
+  function fmtR(n){ return Number(n.toPrecision(6)).toLocaleString('fr-FR', { maximumFractionDigits: 8 }); }
+  function renderChange(){
+    var a = $('#cvFrom').value, b = $('#cvTo').value, g = getRate(a, b), ri = $('#cvRate');
+    $('#cvRateLbl').textContent = 'Taux : 1 ' + a + ' vaut combien de ' + b + ' ?';
+    ri.readOnly = !!(g && (g.src === 'peg' || g.src === 'same'));
+    ri.value = g ? String(Number(g.r.toPrecision(7))) : '';
+    updateChange();
+  }
+  function updateChange(){
+    var a = $('#cvFrom').value, b = $('#cvTo').value, amt = num($('#cvAmt').value), rate = num($('#cvRate').value);
+    var g = getRate(a, b), out = $('#cvOut'), note = $('#cvNote');
+    if (g && g.src === 'peg') note.textContent = 'Taux fixe officiel entre ces deux monnaies.';
+    else if (g && g.src === 'user') note.textContent = 'Taux saisi le ' + new Date(g.ts).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + '. Les taux changent : vérifie-le avant une grosse opération.';
+    else if (g && g.src === 'same') note.textContent = '';
+    else note.textContent = 'Pas de taux officiel pour cette paire. Demande le taux du jour à ta banque, à ton agent de change ou sur un site de change, puis saisis-le : l\'appli le retient.';
+    if (!(rate > 0)) { out.innerHTML = '<div class="tag idle"><div class="lbl">Résultat</div><div class="price">Entre le taux pour convertir</div></div>'; return; }
+    if (!(amt > 0)) { out.innerHTML = '<div class="tag idle"><div class="lbl">Résultat</div><div class="price">Entre un montant</div></div>'; return; }
+    out.innerHTML = '<div class="tag"><div class="lbl">' + fmtN(amt) + ' ' + esc(a) + ' valent</div><div class="price">' + fmtN(amt * rate) + ' ' + esc(b) + '</div></div>' +
+      '<div class="card"><div class="list-row"><div class="name">1 ' + esc(a) + '</div><div class="amt">' + fmtR(rate) + ' ' + esc(b) + '</div></div>' +
+      '<div class="list-row"><div class="name">1 ' + esc(b) + '</div><div class="amt">' + fmtR(1 / rate) + ' ' + esc(a) + '</div></div></div>';
+  }
+  function onRateInput(){
+    var a = $('#cvFrom').value, b = $('#cvTo').value, r = num($('#cvRate').value);
+    if (r > 0 && a !== b) { state.rates[a + '>' + b] = { r: r, ts: Date.now() }; save(); }
+    updateChange();
+  }
+
+  /* ---------- Dettes ---------- */
+  function renderDettes(){
+    var box = $('#dettesBody');
+    var rows = state.clients.map(function(c){
+      var last = state.entries.filter(function(e){ return e.cid === c.id && e.pay === 'credit'; }).reduce(function(m, e){ return Math.max(m, e.ts); }, 0);
+      return { c: c, bal: balance(c), last: last };
+    }).filter(function(r){ return r.bal > 0; }).sort(function(a, b){ return a.last - b.last; });
+    if (!rows.length) {
+      box.innerHTML = '<div class="card empty"><strong>Personne ne te doit rien.</strong><p>Quand tu vends à crédit, le client apparaît ici avec ce qu\'il te doit.</p></div>';
+      return;
+    }
+    var html = '<div class="hero"><div class="lbl">À récupérer</div><div class="big">' + fmt(totalDebts()) + '</div><div class="two"><div><span>Clients concernés</span><strong>' + rows.length + '</strong></div></div></div>';
+    rows.forEach(function(r){
+      var days = Math.floor((Date.now() - r.last) / 864e5);
+      var ago = days <= 0 ? 'aujourd\'hui' : days === 1 ? 'hier' : 'il y a ' + days + ' jours';
+      html += '<div class="card debt-card"><div class="debt-head"><div><div class="name">' + esc(r.c.name) + '</div><div class="sub" style="font-size:14px;color:var(--muted)">Dernier crédit ' + ago + '</div></div><div class="owed">' + fmt(r.bal) + '</div></div>';
+      if (ui.payOpen === r.c.id) {
+        html += '<div class="payline"><input id="payAmt" type="number" inputmode="decimal" min="0" step="any" value="' + r.bal + '" aria-label="Montant reçu"><button class="btn small" data-payok="' + r.c.id + '">Valider</button></div>' +
+          '<div class="debt-actions"><button class="btn ghost small" data-paycancel="1">Annuler</button></div>';
+      } else {
+        html += '<div class="debt-actions"><button class="btn small" data-pay-open="' + r.c.id + '">Il a payé</button>';
+        if (r.c.phone) {
+          var msg = 'Bonjour ' + r.c.name + ', petit rappel : tu me dois ' + fmt(r.bal) + '. Merci !';
+          html += '<a class="btn small wa" style="text-decoration:none;display:flex;align-items:center" href="https://wa.me/' + r.c.phone + '?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener">Rappel WhatsApp</a>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    box.innerHTML = html;
+    if (ui.payOpen) { var pa = $('#payAmt'); if (pa) { pa.focus(); pa.select(); } }
+  }
+
+  /* ---------- Événements ---------- */
+  document.addEventListener('click', function(ev){
+    var t = ev.target.closest('button, a'); if (!t) return;
+    if (t.dataset.tab) return showTab(t.dataset.tab);
+    if (t.dataset.go) return showTab(t.dataset.go);
+    if (t.dataset.period) {
+      ui.period = t.dataset.period;
+      $$('#periodSeg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.period === ui.period ? 'true' : 'false'); });
+      return renderBilan();
+    }
+    if (t.dataset.kind) return setKind(t.dataset.kind);
+    if (t.dataset.pay) return setPay(t.dataset.pay);
+    if (t.id === 'saveBtn') return saveEntry();
+    if (t.id === 'stToggle') { var ac = $('#stAddCard'); ac.hidden = !ac.hidden; if (!ac.hidden) $('#stName').focus(); return; }
+    if (t.id === 'stSave') return saveProduct();
+    if (t.dataset.st) return stockAction(t.dataset.st, t.dataset.id);
+    if (t.dataset.del) {
+      var id = t.dataset.del;
+      if (ui.armedDel === id) {
+        var gone = state.entries.filter(function(e){ return e.id === id; })[0];
+        if (gone && gone.pid && gone.dec) {
+          var gp = state.products.filter(function(p){ return p.id === gone.pid; })[0];
+          if (gp) gp.qty = Math.round((gp.qty + gone.dec) * 1000) / 1000;
+        }
+        state.entries = state.entries.filter(function(e){ return e.id !== id; }); save(); ui.armedDel = null; updateBadge();
+        toast('Opération supprimée');
+      } else {
+        ui.armedDel = id; setTimeout(function(){ if (ui.armedDel === id) { ui.armedDel = null; renderToday(); } }, 3000);
+      }
+      return renderToday();
+    }
+    if (t.dataset.payOpen) { ui.payOpen = t.dataset.payOpen; return renderDettes(); }
+    if (t.dataset.paycancel) { ui.payOpen = null; return renderDettes(); }
+    if (t.dataset.payok) {
+      var cid = t.dataset.payok, c = state.clients.filter(function(x){ return x.id === cid; })[0];
+      var amt = num($('#payAmt').value);
+      if (!(amt > 0)) { toast('Entre le montant reçu.'); return; }
+      amt = Math.min(amt, balance(c));
+      state.payments.push({ id: uid(), cid: cid, amt: amt, ts: Date.now() }); save();
+      ui.payOpen = null; toast('Paiement enregistré'); return renderDettes();
+    }
+  });
+  ['pBuy','pQty','pFees','pLoss','pMargin'].forEach(function(id){ $('#' + id).addEventListener('input', calcPrix); });
+  $('#pNow').addEventListener('input', calcNow);
+  $('#cur').addEventListener('change', function(e){ state.cur = e.target.value; save(); calcPrix(); showTab(ui.tab); });
+
+  $('#fLabel').addEventListener('input', onLabelQty);
+  $('#fQty').addEventListener('input', onLabelQty);
+  $('#fAmt').addEventListener('input', function(){ ui.amtAuto = false; });
+  window.addEventListener('online', updateNet);
+  window.addEventListener('offline', updateNet);
+  $('#cvAmt').addEventListener('input', updateChange);
+  $('#cvRate').addEventListener('input', onRateInput);
+  $('#cvFrom').addEventListener('change', renderChange);
+  $('#cvTo').addEventListener('change', renderChange);
+  $('#cvSwap').addEventListener('click', function(){
+    var f = $('#cvFrom'), t = $('#cvTo'), tmp = f.value; f.value = t.value; t.value = tmp; renderChange();
+  });
+
+  /* ---------- Démarrage ---------- */
+  load();
+  $('#cur').value = state.cur;
+  setKind('v');
+  updateBadge();
+  updateNet();
+  $('#cvFrom').innerHTML = $('#cur').innerHTML;
+  $('#cvTo').innerHTML = $('#cur').innerHTML;
+  $('#cvFrom').value = state.cur;
+  $('#cvTo').value = state.cur === 'EUR' ? 'FCFA' : 'EUR';
+  calcPrix();
+  showTab('bilan');
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>
