@@ -127,6 +127,13 @@ svg.chart{width:100%;height:auto;display:block}
 .lowtag{font-size:14px;font-weight:700;color:var(--loss);margin-top:2px}
 .badge{position:absolute;top:4px;left:calc(50% + 4px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--loss);color:var(--surface);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .stock-card .sub{font-size:14px;color:var(--muted)}
+.seg.paywrap{flex-wrap:wrap}
+.seg.paywrap button{flex:1 1 calc(50% - 6px)}
+.pmrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.pmrow input{flex:1;min-width:0;height:48px;font-size:17px}
+textarea{width:100%;padding:12px 14px;font:inherit;font-size:16px;border:2px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);resize:vertical}
+input[type=file]{width:100%;font-size:16px;color:var(--ink);margin-bottom:4px}
+.bk-hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);font-size:16px;font-weight:600;text-overflow:ellipsis}
 .debt-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .debt-head .name{font-size:20px;font-weight:800}
@@ -243,6 +250,26 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
       <button data-period="month" aria-pressed="false">Ce mois</button>
     </div>
     <div id="bilanBody"></div>
+    <div class="card" id="backupCard">
+      <div class="name" style="font-weight:800;font-size:19px;margin-bottom:4px">Sauvegarde de tes données</div>
+      <p id="bkStatus" style="color:var(--muted);margin:0 0 12px"></p>
+      <button class="btn" id="bkShare" type="button">Envoyer la sauvegarde</button>
+      <p style="font-size:14px;color:var(--muted);margin:8px 0 0">Choisis WhatsApp puis ton propre numéro, ou un email à toi-même. Garde bien ce message.</p>
+      <div class="debt-actions">
+        <button class="btn ghost small" id="bkDownload" type="button">Télécharger un fichier</button>
+        <button class="btn ghost small" id="bkCopy" type="button">Copier le code</button>
+      </div>
+      <hr class="bk-hr">
+      <div class="name" style="font-weight:800;margin-bottom:4px">Retrouver mes données</div>
+      <p style="font-size:15px;color:var(--muted);margin:0 0 10px">Nouveau téléphone ? Choisis ton fichier de sauvegarde, ou colle ton code.</p>
+      <input id="bkFile" type="file" accept=".txt,.json,text/plain,application/json" aria-label="Fichier de sauvegarde">
+      <div class="field" style="margin:10px 0">
+        <label for="bkPaste">Ou colle le code ici</label>
+        <textarea id="bkPaste" rows="3" placeholder="Colle ici le code de sauvegarde"></textarea>
+      </div>
+      <button class="btn ghost" id="bkRestore" type="button">Restaurer avec ce code</button>
+      <div id="bkConfirm" style="margin-top:12px"></div>
+    </div>
   </section>
 
   <!-- CAISSE -->
@@ -270,10 +297,13 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
       </div>
       <div class="field">
         <span class="lbl">Paiement</span>
-        <div class="seg" id="paySeg" role="group" aria-label="Mode de paiement" style="margin-bottom:0">
-          <button data-pay="cash" aria-pressed="true">Espèces</button>
-          <button data-pay="momo" aria-pressed="false">Mobile money</button>
-          <button data-pay="credit" id="creditBtn" aria-pressed="false">À crédit</button>
+        <div class="seg paywrap" id="paySeg" role="group" aria-label="Mode de paiement" style="margin-bottom:8px"></div>
+        <button class="del" id="pmToggle" type="button" style="padding:0;min-height:36px">Modifier les moyens de paiement</button>
+        <div id="pmBox" hidden style="margin-top:10px">
+          <div id="pmList"></div>
+          <label for="pmNew">Ajouter un moyen de paiement</label>
+          <input id="pmNew" type="text" autocomplete="off" placeholder="Ex : MTN MoMo, Moov Money, Free Money">
+          <button class="btn small" id="pmAdd" type="button" style="margin-top:8px">Ajouter</button>
         </div>
       </div>
       <div id="creditBox" hidden>
@@ -419,7 +449,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
 <script>
 (function(){
   var KEY = 'macaisse_v1';
-  var state = { cur: 'FCFA', entries: [], clients: [], payments: [], rates: {}, products: [] };
+  var state = { cur: 'FCFA', entries: [], clients: [], payments: [], rates: {}, products: [], lastBackup: 0, pays: [{ id: 'cash', name: 'Espèces' }, { id: 'wave', name: 'Wave' }, { id: 'om', name: 'Orange Money' }] };
   var ui = { tab: 'bilan', period: 'day', kind: 'v', pay: 'cash', armedDel: null, payOpen: null, amtAuto: false, stOpen: null, stDel: null };
 
   function load(){
@@ -466,7 +496,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     $$('.tabs button').forEach(function(b){
       if (b.dataset.tab === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
-    if (name === 'bilan') renderBilan();
+    if (name === 'bilan') { renderBilan(); renderBackup(); }
     if (name === 'caisse') { renderToday(); renderLists(); }
     if (name === 'dettes') renderDettes();
     if (name === 'change') renderChange();
@@ -480,7 +510,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
   function renderBilan(){
     var body = $('#bilanBody');
     if (!state.entries.length) {
-      body.innerHTML = '<div class="card empty"><strong>Rien d\'enregistré pour l\'instant.</strong><p>Ajoute ta première vente dans la caisse. Le bilan se remplit tout seul.</p><button class="btn" data-go="caisse">Ajouter une vente</button></div>';
+      body.innerHTML = '<div class="card empty"><strong>Rien d\'enregistré pour l\'instant.</strong><p>Ajoute ta première vente dans la caisse. Le bilan se remplit tout seul. Tu changes de téléphone ? Retrouve tes données dans « Retrouver mes données », plus bas.</p><button class="btn" data-go="caisse">Ajouter une vente</button></div>';
       return;
     }
     var start = periodStart(ui.period);
@@ -488,7 +518,8 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     var v = sum(list, 'v'), a = sum(list, 'a'), profit = v - a;
     var debts = totalDebts();
 
-    var html = '<div class="hero"><div class="lbl">Bénéfice ' + periodText[ui.period] + '</div>' +
+    var html = (backupDue() ? '<div class="card" style="border:2px solid var(--accent)"><div class="name" style="font-weight:800">Pense à sauvegarder tes données</div><p style="color:var(--muted);margin:4px 0 10px">Si tu perds ou changes de téléphone, tu perds tout.</p><button class="btn small" data-bk="goto">Sauvegarder maintenant</button></div>' : '') +
+      '<div class="hero"><div class="lbl">Bénéfice ' + periodText[ui.period] + '</div>' +
       '<div class="big' + (profit < 0 ? ' neg' : '') + '">' + fmt(profit) + '</div>' +
       '<div class="two"><div><span>Ventes</span><strong>' + fmt(v) + '</strong></div><div><span>Dépenses</span><strong>' + fmt(a) + '</strong></div></div></div>' +
       '<p class="hero-note">Bénéfice = ventes moins dépenses. Une vente à crédit compte dès qu\'elle est faite.</p>';
@@ -554,16 +585,189 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     $('#fLabelText').textContent = k === 'v' ? 'Produit vendu' : 'Achat ou dépense';
     $('#fLabel').placeholder = k === 'v' ? 'Ex : riz 5 kg' : 'Ex : stock, transport, loyer';
     $('#saveBtn').textContent = k === 'v' ? 'Enregistrer la vente' : 'Enregistrer la dépense';
-    $('#creditBtn').hidden = (k === 'a');
+
     if (k === 'a' && ui.pay === 'credit') setPay('cash'); else setPay(ui.pay);
     updateStockHint();
     renderLists();
   }
   function setPay(p){
     ui.pay = p;
-    $$('#paySeg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.pay === p ? 'true' : 'false'); });
+    renderPay();
     $('#creditBox').hidden = !(p === 'credit' && ui.kind === 'v');
   }
+  /* ---------- Sauvegarde ---------- */
+  function pad2(n){ return (n < 10 ? '0' : '') + n; }
+  function plur(n, w){ return n + ' ' + w + (n > 1 ? 's' : ''); }
+  function bkFileName(){
+    var d = new Date();
+    return 'ma-caisse-sauvegarde-' + d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + '.txt';
+  }
+  function backupDue(){
+    var n = state.entries.length + state.products.length;
+    return n >= 3 && (!state.lastBackup || Date.now() - state.lastBackup > 7 * 864e5);
+  }
+  function renderBackup(){
+    var last = state.lastBackup || 0, t = $('#bkStatus');
+    if (!last) { t.textContent = 'Tu n\'as pas encore sauvegardé tes données.'; return; }
+    var days = Math.floor((Date.now() - last) / 864e5);
+    t.textContent = 'Dernière sauvegarde : ' + (days <= 0 ? 'aujourd\'hui' : days === 1 ? 'hier' : 'il y a ' + days + ' jours') + '.';
+  }
+  function bkSnapshot(){
+    var now = Date.now();
+    var data = JSON.parse(JSON.stringify(state)); data.lastBackup = now;
+    return { json: JSON.stringify({ app: 'ma-caisse', v: 1, date: new Date(now).toISOString(), data: data }), ts: now };
+  }
+  function markBackup(ts){ state.lastBackup = ts; save(); renderBackup(); renderBilan(); }
+
+  function bkShare(){
+    var snap = bkSnapshot(), name = bkFileName();
+    var done = function(){ markBackup(snap.ts); toast('Sauvegarde envoyée'); };
+    try {
+      var file = new File([snap.json], name, { type: 'text/plain' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'Sauvegarde Ma Caisse' }).then(done).catch(function(){});
+        return;
+      }
+    } catch (e) {}
+    if (navigator.share) {
+      navigator.share({ title: 'Sauvegarde Ma Caisse', text: snap.json }).then(done).catch(function(){});
+      return;
+    }
+    bkCopy();
+  }
+  function bkDownload(){
+    var snap = bkSnapshot();
+    try {
+      var blob = new Blob([snap.json], { type: 'text/plain' }), url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = bkFileName();
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      markBackup(snap.ts); toast('Fichier téléchargé');
+    } catch (e) { toast('Téléchargement impossible. Utilise « Envoyer » ou « Copier le code ».'); }
+  }
+  function bkCopy(){
+    var snap = bkSnapshot();
+    var done = function(){ markBackup(snap.ts); toast('Code copié. Colle-le dans un message à toi-même.'); };
+    var fallback = function(){
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = snap.json; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) done(); else toast('Copie impossible. Utilise le fichier.');
+      } catch (e) { toast('Copie impossible. Utilise le fichier.'); }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(snap.json).then(done).catch(fallback);
+    else fallback();
+  }
+
+  function okId(x){ return typeof x === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(x); }
+  function numOr(x, d){ x = Number(x); return isFinite(x) ? x : d; }
+  function str(x, n){ return String(x == null ? '' : x).slice(0, n || 120); }
+  function cleanState(d){
+    var out = { cur: state.cur, entries: [], clients: [], payments: [], rates: {}, products: [], pays: [], lastBackup: numOr(d.lastBackup, 0) };
+    if (typeof d.cur === 'string' && /^[A-Z]{2,5}$/.test(d.cur)) out.cur = d.cur;
+    (Array.isArray(d.clients) ? d.clients : []).forEach(function(c){
+      if (c && okId(c.id)) out.clients.push({ id: c.id, name: str(c.name, 80), phone: str(c.phone, 20).replace(/\D/g, '') });
+    });
+    (Array.isArray(d.pays) ? d.pays : []).forEach(function(m){
+      if (m && okId(m.id) && str(m.name).trim()) out.pays.push({ id: m.id, name: str(m.name, 40) });
+    });
+    if (!out.pays.length) out.pays = [{ id: 'cash', name: 'Espèces' }, { id: 'wave', name: 'Wave' }, { id: 'om', name: 'Orange Money' }];
+    (Array.isArray(d.products) ? d.products : []).forEach(function(p){
+      if (p && okId(p.id) && str(p.name).trim()) out.products.push({ id: p.id, name: str(p.name, 80), qty: numOr(p.qty, 0), buy: numOr(p.buy, 0), sell: numOr(p.sell, 0), min: numOr(p.min, 3) });
+    });
+    (Array.isArray(d.entries) ? d.entries : []).forEach(function(e){
+      if (!e || !okId(e.id) || (e.t !== 'v' && e.t !== 'a') || !isFinite(Number(e.amt))) return;
+      var x = { id: e.id, t: e.t, label: str(e.label, 80), qty: numOr(e.qty, 1), amt: numOr(e.amt, 0), pay: okId(e.pay) ? e.pay : 'cash', payLabel: str(e.payLabel, 40), ts: numOr(e.ts, Date.now()) };
+      if (okId(e.cid)) x.cid = e.cid;
+      if (okId(e.pid)) { x.pid = e.pid; x.dec = numOr(e.dec, 0); }
+      out.entries.push(x);
+    });
+    (Array.isArray(d.payments) ? d.payments : []).forEach(function(p){
+      if (p && okId(p.id) && okId(p.cid)) out.payments.push({ id: p.id, cid: p.cid, amt: numOr(p.amt, 0), ts: numOr(p.ts, Date.now()) });
+    });
+    if (d.rates && typeof d.rates === 'object') {
+      Object.keys(d.rates).forEach(function(k){
+        var v = d.rates[k];
+        if (/^[A-Z]{2,5}>[A-Z]{2,5}$/.test(k) && v && numOr(v.r, 0) > 0) out.rates[k] = { r: numOr(v.r, 0), ts: numOr(v.ts, Date.now()) };
+      });
+    }
+    return out;
+  }
+
+  function prepareRestore(text){
+    var box = $('#bkConfirm'), o = null;
+    try { o = JSON.parse(String(text || '').trim()); } catch (e) { o = null; }
+    var d = o && (o.data && typeof o.data === 'object' ? o.data : o);
+    if (!d || !Array.isArray(d.entries)) {
+      ui.bkPending = null;
+      box.innerHTML = '<div class="callout bad">Ce fichier ou ce code n\'est pas une sauvegarde de Ma Caisse.</div>';
+      return;
+    }
+    var c = cleanState(d);
+    ui.bkPending = d;
+    var when = (o.date && !isNaN(new Date(o.date))) ? new Date(o.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'date inconnue';
+    box.innerHTML = '<div class="callout">Sauvegarde du ' + esc(when) + ' : ' + plur(c.entries.length, 'opération') + ', ' + plur(c.products.length, 'produit') + ', ' + plur(c.clients.length, 'client') + '. Elle va <strong>remplacer</strong> les données actuelles de ce téléphone.</div>' +
+      '<div class="debt-actions"><button class="btn small" data-bk="apply">Restaurer</button><button class="btn ghost small" data-bk="cancel">Annuler</button></div>';
+  }
+  function applyRestore(){
+    var d = ui.bkPending; if (!d) return;
+    var c = cleanState(d);
+    state.cur = c.cur; state.entries = c.entries; state.clients = c.clients; state.payments = c.payments;
+    state.rates = c.rates; state.products = c.products; state.pays = c.pays; state.lastBackup = c.lastBackup;
+    save();
+    ui.bkPending = null; ui.stOpen = null; ui.payOpen = null;
+    $('#bkConfirm').innerHTML = ''; $('#bkPaste').value = ''; $('#bkFile').value = '';
+    $('#cur').value = state.cur;
+    if ($('#cur').value !== state.cur) { state.cur = 'FCFA'; $('#cur').value = 'FCFA'; save(); }
+    if (ui.pay !== 'credit' && !state.pays.filter(function(m){ return m.id === ui.pay; })[0]) ui.pay = state.pays[0].id;
+    setKind(ui.kind); renderBilan(); renderBackup(); updateBadge(); renderToday();
+    toast('Données restaurées');
+  }
+
+  /* ---------- Moyens de paiement ---------- */
+  function payName(e){
+    var id = (typeof e === 'string') ? e : e.pay;
+    if (id === 'credit') return 'À crédit';
+    var m = state.pays.filter(function(x){ return x.id === id; })[0];
+    if (m) return m.name;
+    if (e && e.payLabel) return e.payLabel;
+    return id === 'momo' ? 'Mobile money' : 'Autre';
+  }
+  function renderPay(){
+    var h = state.pays.map(function(m){
+      return '<button data-pay="' + esc(m.id) + '" aria-pressed="' + (ui.pay === m.id ? 'true' : 'false') + '">' + esc(m.name) + '</button>';
+    }).join('');
+    if (ui.kind === 'v') h += '<button data-pay="credit" aria-pressed="' + (ui.pay === 'credit' ? 'true' : 'false') + '">À crédit</button>';
+    $('#paySeg').innerHTML = h;
+    $('#creditBox').hidden = !(ui.pay === 'credit' && ui.kind === 'v');
+  }
+  function renderPm(){
+    $('#pmList').innerHTML = state.pays.map(function(m){
+      return '<div class="pmrow"><input type="text" value="' + esc(m.name) + '" data-pmid="' + esc(m.id) + '" aria-label="Nom du moyen de paiement">' +
+        '<button class="del" data-pm="del" data-id="' + esc(m.id) + '">Supprimer</button></div>';
+    }).join('');
+  }
+  function addPay(){
+    var name = $('#pmNew').value.trim();
+    if (!name) { toast('Entre le nom du moyen de paiement.'); $('#pmNew').focus(); return; }
+    var dup = state.pays.filter(function(m){ return m.name.toLowerCase() === name.toLowerCase(); })[0];
+    if (dup) { toast('Ce moyen de paiement existe déjà.'); return; }
+    state.pays.push({ id: 'p' + uid(), name: name });
+    save(); $('#pmNew').value = '';
+    renderPm(); renderPay(); toast('Moyen de paiement ajouté');
+  }
+  function payAction(a, id){
+    if (a !== 'del') return;
+    if (state.pays.length <= 1) { toast('Garde au moins un moyen de paiement.'); return; }
+    state.pays = state.pays.filter(function(m){ return m.id !== id; });
+    if (ui.pay === id) ui.pay = state.pays[0].id;
+    save(); renderPm(); renderPay(); renderToday();
+  }
+
   function renderLists(){
     var seen = {}, opts = '';
     if (ui.kind === 'v') state.products.forEach(function(p){ seen[p.name.toLowerCase()] = 1; opts += '<option value="' + esc(p.name) + '">'; });
@@ -578,10 +782,10 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     var list = state.entries.filter(function(e){ return e.ts >= start; }).sort(function(a, b){ return b.ts - a.ts; });
     var box = $('#todayList');
     if (!list.length) { box.innerHTML = '<div class="card empty"><p style="margin:0">Aucune opération aujourd\'hui. Enregistre ta première vente ci-dessus.</p></div>'; return; }
-    var payText = { cash: 'Espèces', momo: 'Mobile money', credit: 'À crédit' };
+
     box.innerHTML = '<div class="card">' + list.map(function(e){
       var cl = e.cid ? state.clients.filter(function(c){ return c.id === e.cid; })[0] : null;
-      var sub = payText[e.pay] + (cl ? ' : ' + esc(cl.name) : '') + ((e.qty && e.qty !== 1) ? ', quantité ' + e.qty : '');
+      var sub = esc(payName(e)) + (cl ? ' : ' + esc(cl.name) : '') + ((e.qty && e.qty !== 1) ? ', quantité ' + e.qty : '');
       var armed = ui.armedDel === e.id;
       return '<div class="list-row"><div style="min-width:0"><div class="name">' + esc(e.label || (e.t === 'v' ? 'Vente' : 'Dépense')) + '</div><div class="sub">' + sub + '</div></div>' +
         '<div style="text-align:right"><div class="amt ' + (e.t === 'v' ? 'plus' : 'minus') + '">' + (e.t === 'v' ? '+' : '−') + fmt(e.amt) + '</div>' +
@@ -593,7 +797,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     if (!(amt > 0)) { toast('Entre le montant.'); $('#fAmt').focus(); return; }
     var qty = num($('#fQty').value); if (!(qty > 0)) qty = 1;
     var label = $('#fLabel').value.trim();
-    var entry = { id: uid(), t: ui.kind, label: label, qty: qty, amt: amt, pay: ui.pay, ts: Date.now() };
+    var entry = { id: uid(), t: ui.kind, label: label, qty: qty, amt: amt, pay: ui.pay, payLabel: payName(ui.pay), ts: Date.now() };
     if (ui.kind === 'v' && ui.pay === 'credit') {
       var name = $('#fClient').value.trim();
       if (!name) { toast('Ajoute le nom du client.'); $('#fClient').focus(); return; }
@@ -876,6 +1080,18 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     if (t.id === 'stToggle') { var ac = $('#stAddCard'); ac.hidden = !ac.hidden; if (!ac.hidden) $('#stName').focus(); return; }
     if (t.id === 'stSave') return saveProduct();
     if (t.dataset.st) return stockAction(t.dataset.st, t.dataset.id);
+    if (t.id === 'bkShare') return bkShare();
+    if (t.id === 'bkDownload') return bkDownload();
+    if (t.id === 'bkCopy') return bkCopy();
+    if (t.id === 'bkRestore') return prepareRestore($('#bkPaste').value);
+    if (t.dataset.bk) {
+      if (t.dataset.bk === 'apply') return applyRestore();
+      if (t.dataset.bk === 'cancel') { ui.bkPending = null; $('#bkConfirm').innerHTML = ''; return; }
+      if (t.dataset.bk === 'goto') { var bc = $('#backupCard'); if (bc && bc.scrollIntoView) bc.scrollIntoView({ behavior: 'smooth' }); return; }
+    }
+    if (t.id === 'pmToggle') { var pb = $('#pmBox'); pb.hidden = !pb.hidden; if (!pb.hidden) renderPm(); return; }
+    if (t.id === 'pmAdd') return addPay();
+    if (t.dataset.pm) return payAction(t.dataset.pm, t.dataset.id);
     if (t.dataset.del) {
       var id = t.dataset.del;
       if (ui.armedDel === id) {
@@ -906,6 +1122,21 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
   $('#pNow').addEventListener('input', calcNow);
   $('#cur').addEventListener('change', function(e){ state.cur = e.target.value; save(); calcPrix(); showTab(ui.tab); });
 
+  document.addEventListener('input', function(ev){
+    var t = ev.target;
+    if (t && t.dataset && t.dataset.pmid) {
+      var name = String(t.value || '').trim();
+      var m = state.pays.filter(function(x){ return x.id === t.dataset.pmid; })[0];
+      if (m && name) { m.name = name; save(); renderPay(); renderToday(); }
+    }
+  });
+  $('#bkFile').addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function(){ prepareRestore(String(r.result || '')); };
+    r.onerror = function(){ toast('Impossible de lire ce fichier.'); };
+    r.readAsText(f);
+  });
   $('#fLabel').addEventListener('input', onLabelQty);
   $('#fQty').addEventListener('input', onLabelQty);
   $('#fAmt').addEventListener('input', function(){ ui.amtAuto = false; });
@@ -925,6 +1156,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
   setKind('v');
   updateBadge();
   updateNet();
+  renderBackup();
   $('#cvFrom').innerHTML = $('#cur').innerHTML;
   $('#cvTo').innerHTML = $('#cur').innerHTML;
   $('#cvFrom').value = state.cur;

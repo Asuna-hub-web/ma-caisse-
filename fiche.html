@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ma Caisse en 7 étapes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --ink:#142B4B; --muted:#56657A; --line:#D8DEE5;
+  --accent:#F2A413; --on-accent:#142B4B; --loss:#B9382A; --wa:#1F9D55;
+  --hero-bg:#142B4B; --hero-ink:#FFFFFF; --hero-muted:#B8C6DA;
+  --btn-bg:#142B4B; --btn-ink:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1826; --surface:#16263B; --ink:#EAF0F7; --muted:#9FB1C8; --line:#2B3F58;
+    --accent:#F5B335; --on-accent:#142B4B; --loss:#FF8F7E;
+    --hero-bg:#1D3555; --hero-ink:#FFFFFF; --hero-muted:#B8C6DA;
+    --btn-bg:#F5B335; --btn-ink:#142B4B;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1826; --surface:#16263B; --ink:#EAF0F7; --muted:#9FB1C8; --line:#2B3F58;
+  --accent:#F5B335; --on-accent:#142B4B; --loss:#FF8F7E;
+  --hero-bg:#1D3555; --hero-ink:#FFFFFF; --hero-muted:#B8C6DA;
+  --btn-bg:#F5B335; --btn-ink:#142B4B;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:18px;line-height:1.45;-webkit-text-size-adjust:100%;
+}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+.hero{background:var(--hero-bg);color:var(--hero-ink);border-radius:26px;padding:28px 22px;margin-bottom:22px}
+.hero h1{margin:0 0 8px;font-size:clamp(34px,10vw,48px);line-height:1.05;letter-spacing:-.03em;font-weight:800}
+.hero p{margin:0;color:var(--hero-muted);font-size:19px}
+ol{list-style:none;margin:0;padding:0;counter-reset:step}
+.step{counter-increment:step;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:16px}
+.step h2{display:flex;align-items:center;gap:12px;margin:0 0 6px;font-size:22px;line-height:1.2;font-weight:800;letter-spacing:-.01em}
+.step h2::before{
+  content:counter(step);flex:none;width:36px;height:36px;border-radius:50%;
+  background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;
+}
+.step p{margin:0 0 12px;color:var(--muted)}
+.step svg{display:block;width:100%;height:auto}
+.bonus{border:2px solid var(--line);border-radius:20px;padding:16px;margin:0 0 16px}
+.bonus strong{display:block;font-size:20px;margin-bottom:4px}
+.bonus span{color:var(--muted)}
+.foot{font-size:17px;font-weight:600;text-align:center;margin:24px 8px 0}
+.foot a{color:var(--ink);word-break:break-all}
+svg text{font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>Ma Caisse en 7 étapes</h1>
+    <p>Sache combien tu gagnes vraiment, depuis ton téléphone.</p>
+  </div>
+
+  <ol>
+    <li class="step">
+      <h2>Ouvre l'appli</h2>
+      <p>Ouvre le lien dans Chrome. Dans le menu ⋮, choisis « Installer l'application ». Elle se lance ensuite comme les autres, même sans internet.</p>
+      <svg viewBox="0 0 240 130" role="img" aria-label="Icône Ma Caisse sur l'écran d'accueil du téléphone">
+        <rect x="4" y="4" width="232" height="122" rx="18" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
+        <rect x="22" y="20" width="40" height="40" rx="12" fill="var(--line)"/>
+        <rect x="72" y="20" width="40" height="40" rx="12" fill="var(--line)"/>
+        <rect x="122" y="20" width="40" height="40" rx="12" fill="var(--line)"/>
+        <rect x="172" y="20" width="40" height="40" rx="12" fill="var(--accent)"/>
+        <path d="M184 50V38M192 50V30M200 50V42" stroke="var(--on-accent)" stroke-width="4" stroke-linecap="round"/>
+        <text x="192" y="78" text-anchor="middle" font-size="12" font-weight="800" fill="var(--ink)">Ma Caisse</text>
+        <rect x="22" y="92" width="40" height="22" rx="8" fill="var(--line)"/>
+        <rect x="72" y="92" width="40" height="22" rx="8" fill="var(--line)"/>
+        <rect x="122" y="92" width="40" height="22" rx="8" fill="var(--line)"/>
+      </svg>
+    </li>
+
+    <li class="step">
+      <h2>Ajoute tes produits</h2>
+      <p>Onglet Stock : note chaque produit une seule fois, avec la quantité et les prix. L'appli te prévient quand il est presque fini.</p>
+      <svg viewBox="0 0 240 150" role="img" aria-label="Liste de stock : riz 10 en stock, sucre presque fini">
+        <rect x="4" y="4" width="232" height="142" rx="18" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
+        <text x="20" y="34" font-size="17" font-weight="800" fill="var(--ink)">Riz 5 kg</text>
+        <text x="20" y="54" font-size="11" fill="var(--muted)">achat 400, vente 500, marge 25 %</text>
+        <text x="220" y="38" text-anchor="end" font-size="26" font-weight="800" fill="var(--ink)">10</text>
+        <text x="220" y="54" text-anchor="end" font-size="11" fill="var(--muted)">en stock</text>
+        <line x1="20" y1="74" x2="220" y2="74" stroke="var(--line)" stroke-width="2"/>
+        <text x="20" y="104" font-size="17" font-weight="800" fill="var(--ink)">Sucre</text>
+        <text x="20" y="124" font-size="12" font-weight="800" fill="var(--loss)">Presque fini</text>
+        <text x="220" y="108" text-anchor="end" font-size="26" font-weight="800" fill="var(--loss)">2</text>
+        <text x="220" y="124" text-anchor="end" font-size="11" fill="var(--muted)">en stock</text>
+      </svg>
+    </li>
+
+    <li class="step">
+      <h2>Note chaque vente</h2>
+      <p>Onglet Caisse : écris le produit et le montant, puis choisis Espèces, Wave, Orange Money ou À crédit. Le stock baisse tout seul.</p>
+      <svg viewBox="0 0 240 200" role="img" aria-label="Formulaire de vente avec choix du paiement : Espèces, Wave, Orange Money, À crédit">
+        <rect x="4" y="4" width="232" height="192" rx="18" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
+        <rect x="18" y="16" width="204" height="30" rx="9" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+        <text x="30" y="36" font-size="14" fill="var(--ink)">Riz 5 kg</text>
+        <rect x="18" y="52" width="204" height="30" rx="9" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+        <text x="30" y="72" font-size="14" fill="var(--ink)">1 000</text>
+        <rect x="18" y="90" width="98" height="30" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+        <text x="67" y="110" text-anchor="middle" font-size="13" font-weight="600" fill="var(--muted)">Espèces</text>
+        <rect x="124" y="90" width="98" height="30" rx="10" fill="var(--btn-bg)"/>
+        <text x="173" y="110" text-anchor="middle" font-size="13" font-weight="800" fill="var(--btn-ink)">Wave</text>
+        <rect x="18" y="126" width="98" height="30" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+        <text x="67" y="146" text-anchor="middle" font-size="13" font-weight="600" fill="var(--muted)">Orange Money</text>
+        <rect x="124" y="126" width="98" height="30" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+        <text x="173" y="146" text-anchor="middle" font-size="13" font-weight="600" fill="var(--muted)">À crédit</text>
+        <rect x="18" y="162" width="204" height="28" rx="10" fill="var(--btn-bg)"/>
+        <text x="120" y="181" text-anchor="middle" font-size="13" font-weight="800" fill="var(--btn-ink)">Enregistrer la vente</text>
+      </svg>
+    </li>
+
+    <li class="step">
+      <h2>Trouve le bon prix</h2>
+      <p>Onglet Prix : entre le prix d'achat, le transport et les pertes. L'appli te dit à combien vendre pour vraiment gagner.</p>
+      <svg viewBox="0 0 240 120" role="img" aria-label="Étiquette de prix conseillé : vends à 1 250 FCFA">
+        <rect x="4" y="4" width="232" height="112" rx="18" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
+        <polygon points="46,22 220,22 220,98 46,98 20,60" fill="var(--accent)"/>
+        <circle cx="46" cy="60" r="7" fill="var(--bg)"/>
+        <text x="66" y="46" font-size="13" font-weight="600" fill="var(--on-accent)">Vends à</text>
+        <text x="66" y="80" font-size="30" font-weight="800" fill="var(--on-accent)">1 250 FCFA</text>
+      </svg>
+    </li>
+
+    <li class="step">
+      <h2>Suis les dettes</h2>
+      <p>Pour une vente à crédit, entre le nom du client. Onglet Dettes : tu vois qui te doit quoi et tu envoies un rappel WhatsApp.</p>
+      <svg viewBox="0 0 240 130" role="img" aria-label="Liste de dettes : Awa doit 5 000 FCFA">
+        <rect x="4" y="4" width="232" height="122" rx="18" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
+        <text x="20" y="38" font-size="18" font-weight="800" fill="var(--ink)">Awa</text>
+        <text x="220" y="38" text-anchor="end" font-size="18" font-weight="800" fill="var(--loss)">5 000 FCFA</text>
+        <rect x="20" y="56" width="88" height="34" rx="10" fill="var(--btn-bg)"/>
+        <text x="64" y="78" text-anchor="middle" font-size="14" font-weight="800" fill="var(--btn-ink)">Il a payé</text>
+        <rect x="118" y="56" width="102" height="34" rx="10" fill="var(--wa)"/>
+        <text x="169" y="78" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">Rappel WhatsApp</text>
+        <line x1="20" y1="104" x2="220" y2="104" stroke="var(--line)" stroke-width="2"/>
+      </svg>
+    </li>
+
+    <li class="step">
+      <h2>Regarde ton bilan le soir</h2>
+      <p>Onglet Bilan : ton bénéfice du jour, de la semaine et du mois, et les produits qui rapportent le plus.</p>
+      <svg viewBox="0 0 240 130" role="img" aria-label="Bilan : bénéfice du jour 8 500 FCFA">
+        <rect x="4" y="4" width="232" height="122" rx="22" fill="var(--hero-bg)"/>
+        <text x="22" y="34" font-size="13" font-weight="600" fill="var(--hero-muted)">Bénéfice aujourd'hui</text>
+        <text x="22" y="72" font-size="32" font-weight="800" fill="var(--accent)">8 500 FCFA</text>
+        <text x="22" y="98" font-size="11" fill="var(--hero-muted)">Ventes</text>
+        <text x="22" y="115" font-size="14" font-weight="800" fill="var(--hero-ink)">23 000 FCFA</text>
+        <text x="128" y="98" font-size="11" fill="var(--hero-muted)">Dépenses</text>
+        <text x="128" y="115" font-size="14" font-weight="800" fill="var(--hero-ink)">14 500 FCFA</text>
+      </svg>
+    </li>
+
+    <li class="step">
+      <h2>Sauvegarde tes données</h2>
+      <p>Une fois par semaine, en bas du Bilan : « Envoyer la sauvegarde », puis WhatsApp vers ton propre numéro. Si tu changes de téléphone, tu retrouves tout.</p>
+      <svg viewBox="0 0 240 140" role="img" aria-label="Bouton Envoyer la sauvegarde et message WhatsApp contenant le fichier de sauvegarde">
+        <rect x="4" y="4" width="232" height="132" rx="18" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>
+        <rect x="18" y="16" width="204" height="38" rx="12" fill="var(--btn-bg)"/>
+        <text x="120" y="40" text-anchor="middle" font-size="14" font-weight="800" fill="var(--btn-ink)">Envoyer la sauvegarde</text>
+        <rect x="18" y="70" width="204" height="56" rx="14" fill="var(--surface)" stroke="var(--wa)" stroke-width="2"/>
+        <rect x="30" y="82" width="22" height="32" rx="4" fill="var(--accent)"/>
+        <text x="62" y="95" font-size="12" font-weight="800" fill="var(--ink)">ma-caisse-sauvegarde.txt</text>
+        <text x="62" y="112" font-size="11" fill="var(--muted)">Envoyé à toi-même</text>
+      </svg>
+    </li>
+  </ol>
+
+  <div class="bonus">
+    <strong>Et aussi</strong>
+    <span>Tu utilises MTN MoMo ou Moov Money ? Dans la Caisse, touche « Modifier les moyens de paiement ». L'onglet Change convertit FCFA, euro, naira, dirham et les autres monnaies.</span>
+  </div>
+
+  <p class="foot">Gratuit. Sans inscription. Tes données restent sur ton téléphone.<br><a href="https://asuna-hub-web.github.io/ma-caisse-/" rel="noopener">asuna-hub-web.github.io/ma-caisse-</a></p>
+</div>
+</body>
+</html>
