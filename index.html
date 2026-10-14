@@ -83,7 +83,7 @@ p{margin:0 0 12px}
 .field{margin-bottom:14px}
 .field label,.field .lbl{display:block;font-size:15px;font-weight:600;color:var(--muted);margin-bottom:6px}
 .field .hint{font-size:14px;color:var(--muted);margin:6px 0 0}
-input[type=text],input[type=number],input[type=tel]{
+input[type=text],input[type=number],input[type=tel],input[type=date]{
   width:100%;height:54px;padding:0 14px;font-size:19px;
   border:2px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);
 }
@@ -120,6 +120,32 @@ svg.chart{width:100%;height:auto;display:block}
 
 .debt-card{border-radius:18px}
 .offline{background:var(--accent);color:var(--on-accent);border-radius:14px;padding:10px 14px;font-weight:600;font-size:15px;margin-bottom:14px}
+.help-btn{flex:none;width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;font-weight:800;font-size:15px;cursor:pointer;line-height:1}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.overlay[hidden]{display:none}
+.sheet{background:var(--surface);color:var(--ink);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 20px calc(18px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow-y:auto}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sheet-head strong{font-size:19px}
+.rpt-row{padding:10px 0}
+@media print{
+  body > *:not(#reportOverlay){display:none !important}
+  #reportOverlay{position:static;background:none;display:block;padding:0}
+  #reportOverlay .sheet{box-shadow:none;max-height:none;overflow:visible;border-radius:0;padding:0;width:100%;max-width:100%;background:#fff;color:#000}
+  #reportOverlay .hero{background:#fff;border:2px solid #000;color:#000}
+  #reportOverlay .hero .lbl,#reportOverlay .hero .two span{color:#444}
+  #reportOverlay .hero .big{color:#000}
+  #reportOverlay .amt.plus{color:#0a6b43 !important}
+  #reportOverlay .amt.minus{color:#a3291e !important}
+  #reportOverlay .rpt-row{break-inside:avoid;border-top:1px solid #ccc}
+  #reportClose,#reportPrint{display:none}
+}
+.sheet p{margin:0 0 12px;line-height:1.45}
+.sheet p:last-child{margin-bottom:0}
+.sheet p strong{display:inline-block;min-width:78px}
+.intro-card{background:var(--surface);border:2px solid var(--accent);border-radius:18px;padding:16px;margin-bottom:14px}
+.intro-card strong{display:block;font-size:19px;margin-bottom:8px}
+.intro-card ol{margin:0 0 14px;padding-left:20px}
+.intro-card li{margin-bottom:4px}
 .field .hint.warn{color:var(--loss);font-weight:600}
 .qty{font-size:28px;font-weight:800;line-height:1;text-align:right}
 .qty.low{color:var(--loss)}
@@ -193,7 +219,10 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand">Ma Caisse</div>
+    <div style="display:flex;align-items:center;gap:8px;min-width:0">
+      <div class="brand">Ma Caisse</div>
+      <button id="helpBtn" class="help-btn" type="button" aria-label="Comment utiliser l'appli">?</button>
+    </div>
     <label class="sr-only" for="cur">Monnaie</label>
     <select id="cur" class="cur">
       <optgroup label="Afrique">
@@ -255,26 +284,42 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
       <button data-period="day" aria-pressed="true">Aujourd'hui</button>
       <button data-period="week" aria-pressed="false">7 jours</button>
       <button data-period="month" aria-pressed="false">Ce mois</button>
+      <button data-period="custom" aria-pressed="false">Un jour</button>
     </div>
+    <div class="field" id="customDateBox" hidden style="margin-bottom:14px">
+      <label for="customDate">Choisis le jour</label>
+      <input id="customDate" type="date">
+    </div>
+    <button class="btn ghost" id="reportBtn" type="button" style="margin-bottom:14px">Voir le rapport</button>
     <div id="bilanBody"></div>
     <div class="card" id="backupCard">
       <div class="name" style="font-weight:800;font-size:19px;margin-bottom:4px">Sauvegarde de tes données</div>
       <p id="bkStatus" style="color:var(--muted);margin:0 0 12px"></p>
-      <button class="btn" id="bkShare" type="button">Envoyer la sauvegarde</button>
+      <button class="btn full" id="bkShare" type="button">Sauvegarder maintenant</button>
       <p style="font-size:14px;color:var(--muted);margin:8px 0 0">Choisis WhatsApp puis ton propre numéro, ou un email à toi-même. Garde bien ce message.</p>
-      <div class="debt-actions">
-        <button class="btn ghost small" id="bkDownload" type="button">Télécharger un fichier</button>
-        <button class="btn ghost small" id="bkCopy" type="button">Copier le code</button>
+      <button class="del" id="bkMoreToggle" type="button" style="margin-top:10px;padding:0;min-height:36px">Autre méthode</button>
+      <div id="bkMoreBox" hidden style="margin-top:8px">
+        <div class="debt-actions">
+          <button class="btn ghost small" id="bkDownload" type="button">Télécharger un fichier</button>
+          <button class="btn ghost small" id="bkCopy" type="button">Copier le code</button>
+        </div>
       </div>
       <hr class="bk-hr">
-      <div class="name" style="font-weight:800;margin-bottom:4px">Retrouver mes données</div>
-      <p style="font-size:15px;color:var(--muted);margin:0 0 10px">Nouveau téléphone ? Choisis ton fichier de sauvegarde, ou colle ton code.</p>
-      <input id="bkFile" type="file" accept=".txt,.json,text/plain,application/json" aria-label="Fichier de sauvegarde">
-      <div class="field" style="margin:10px 0">
-        <label for="bkPaste">Ou colle le code ici</label>
-        <textarea id="bkPaste" rows="3" placeholder="Colle ici le code de sauvegarde"></textarea>
+      <button class="del" id="bkRestoreToggle" type="button" style="font-size:15px;padding:0;min-height:36px">Nouveau téléphone ? Retrouver mes données</button>
+      <div id="bkRestoreBox" hidden style="margin-top:10px">
+        <div class="name" style="font-weight:800;margin-bottom:4px">Retrouver mes données</div>
+        <p style="font-size:15px;color:var(--muted);margin:0 0 10px">Choisis ton fichier de sauvegarde.</p>
+        <label class="btn full" for="bkFile" style="display:block;text-align:center;box-sizing:border-box">Choisir mon fichier de sauvegarde</label>
+        <input id="bkFile" type="file" accept=".txt,.json,text/plain,application/json" aria-label="Fichier de sauvegarde" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
+        <button class="del" id="bkPasteToggle" type="button" style="margin-top:10px;padding:0;min-height:36px">Ou coller un code à la place</button>
+        <div id="bkPasteBox" hidden style="margin-top:8px">
+          <div class="field" style="margin:0 0 10px">
+            <label for="bkPaste">Code de sauvegarde</label>
+            <textarea id="bkPaste" rows="3" placeholder="Colle ici le code de sauvegarde"></textarea>
+          </div>
+          <button class="btn ghost" id="bkRestore" type="button">Restaurer avec ce code</button>
+        </div>
       </div>
-      <button class="btn ghost" id="bkRestore" type="button">Restaurer avec ce code</button>
       <div id="bkConfirm" style="margin-top:12px"></div>
     </div>
   </section>
@@ -442,6 +487,26 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
 
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
+<div id="helpOverlay" class="overlay" hidden>
+  <div class="sheet" role="dialog" aria-label="Comment utiliser Ma Caisse">
+    <div class="sheet-head"><strong>Comment utiliser Ma Caisse</strong><button id="helpClose" class="del" type="button">Fermer</button></div>
+    <p><strong>Stock</strong> ajoute tes produits une fois, avec leur prix.</p>
+    <p><strong>Caisse</strong> note chaque vente ou dépense en quelques secondes.</p>
+    <p><strong>Prix</strong> trouve le bon prix de vente avec ta marge.</p>
+    <p><strong>Change</strong> convertit entre les monnaies.</p>
+    <p><strong>Dettes</strong> suit qui te doit de l'argent, avec un rappel WhatsApp.</p>
+    <p><strong>Bilan</strong> montre ton bénéfice chaque soir, et te permet de sauvegarder tes données.</p>
+  </div>
+</div>
+
+<div id="reportOverlay" class="overlay" hidden>
+  <div class="sheet" role="dialog" aria-label="Rapport">
+    <div class="sheet-head"><strong id="reportTitle">Rapport</strong><button id="reportClose" class="del" type="button">Fermer</button></div>
+    <div id="reportBody"></div>
+    <button class="btn" id="reportPrint" type="button" style="margin-top:16px">Imprimer / Enregistrer en PDF</button>
+  </div>
+</div>
+
 <nav class="tabs" aria-label="Navigation">
   <div class="tabs-in">
     <button data-tab="bilan" aria-current="page"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></span>Bilan</button>
@@ -456,8 +521,8 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
 <script>
 (function(){
   var KEY = 'macaisse_v1';
-  var state = { cur: 'FCFA', entries: [], clients: [], payments: [], rates: {}, products: [], lastBackup: 0, pays: [{ id: 'cash', name: 'Espèces' }, { id: 'wave', name: 'Wave' }, { id: 'om', name: 'Orange Money' }] };
-  var ui = { tab: 'bilan', period: 'day', kind: 'v', pay: 'cash', armedDel: null, payOpen: null, amtAuto: false, stOpen: null, stDel: null };
+  var state = { cur: 'FCFA', entries: [], clients: [], payments: [], rates: {}, products: [], lastBackup: 0, introSeen: false, pays: [{ id: 'cash', name: 'Espèces' }, { id: 'wave', name: 'Wave' }, { id: 'om', name: 'Orange Money' }] };
+  var ui = { tab: 'bilan', period: 'day', kind: 'v', pay: 'cash', armedDel: null, payOpen: null, amtAuto: false, stOpen: null, stDel: null, customDate: null };
 
   function load(){
     try {
@@ -487,6 +552,24 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     if (p === 'month') d.setDate(1);
     return d.getTime();
   }
+  function isoDate(d){ var x = dayStart(d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); }
+  function customRange(){
+    var v = ui.customDate || isoDate(new Date());
+    var s = new Date(v + 'T00:00:00').getTime();
+    return { start: s, end: s + 86400000 };
+  }
+  function customLabel(){
+    var v = ui.customDate || isoDate(new Date());
+    var d = new Date(v + 'T00:00:00');
+    var diff = Math.round((dayStart(new Date()).getTime() - d.getTime()) / 86400000);
+    if (diff === 0) return "aujourd'hui";
+    if (diff === 1) return 'hier';
+    if (diff === 2) return 'avant-hier';
+    var opts = { day: 'numeric', month: 'long' };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return 'le ' + d.toLocaleDateString('fr-FR', opts);
+  }
+  function periodLabel(){ return ui.period === 'custom' ? customLabel() : periodText[ui.period]; }
   function sum(list, type){ return list.filter(function(e){ return e.t === type; }).reduce(function(s, e){ return s + e.amt; }, 0); }
 
   function balance(c){
@@ -514,19 +597,57 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
   /* ---------- Bilan ---------- */
   var periodText = { day: "aujourd'hui", week: 'sur 7 jours', month: 'ce mois-ci' };
 
+  function introHtml(){
+    if (state.introSeen) return '';
+    return '<div class="intro-card"><strong>Bienvenue sur Ma Caisse</strong><ol><li>Ajoute tes produits dans <b>Stock</b></li><li>Note une vente dans <b>Caisse</b></li><li>Regarde ton bénéfice chaque soir, ici dans <b>Bilan</b></li></ol><button class="btn small" id="introOk" type="button">J\u2019ai compris</button></div>';
+  }
+
+  function getPeriodList(){
+    if (ui.period === 'custom') {
+      var range = customRange();
+      return state.entries.filter(function(e){ return e.ts >= range.start && e.ts < range.end; });
+    }
+    var start = periodStart(ui.period);
+    return state.entries.filter(function(e){ return e.ts >= start; });
+  }
+
+  function renderReport(){
+    var list = getPeriodList().slice().sort(function(a, b){ return b.ts - a.ts; });
+    var v = sum(list, 'v'), a = sum(list, 'a'), profit = v - a;
+    $('#reportTitle').textContent = 'Rapport : ' + periodLabel();
+    var html = '<div class="hero" style="margin-bottom:14px"><div class="lbl">Bénéfice ' + periodLabel() + '</div>' +
+      '<div class="big' + (profit < 0 ? ' neg' : '') + '">' + fmt(profit) + '</div>' +
+      '<div class="two"><div><span>Ventes</span><strong>' + fmt(v) + '</strong></div><div><span>Dépenses</span><strong>' + fmt(a) + '</strong></div></div></div>';
+    html += '<div style="margin-bottom:14px">' + chartHtml() + '</div>';
+    if (!list.length) {
+      html += '<p style="color:var(--muted)">Aucune opération enregistrée pour cette période.</p>';
+    } else {
+      html += '<div class="name" style="font-weight:800;margin-bottom:4px">Détail des opérations</div>';
+      html += list.map(function(e){
+        var when = new Date(e.ts).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        var cl = e.cid ? state.clients.filter(function(c){ return c.id === e.cid; })[0] : null;
+        var sub = when + ' · ' + esc(payName(e)) + (cl ? ' · ' + esc(cl.name) : '');
+        return '<div class="list-row rpt-row"><div style="min-width:0"><div class="name">' + esc(e.label || (e.t === 'v' ? 'Vente' : 'Dépense')) + '</div><div class="sub">' + sub + '</div></div>' +
+          '<div class="amt ' + (e.t === 'v' ? 'plus' : 'minus') + '">' + (e.t === 'v' ? '+' : '\u2212') + fmt(e.amt) + '</div></div>';
+      }).join('');
+    }
+    var gdate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    html += '<p style="font-size:13px;color:var(--muted);margin-top:16px">Document généré le ' + gdate + ' par Ma Caisse.</p>';
+    $('#reportBody').innerHTML = html;
+  }
+
   function renderBilan(){
     var body = $('#bilanBody');
     if (!state.entries.length) {
-      body.innerHTML = '<div class="card empty"><strong>Rien d\'enregistré pour l\'instant.</strong><p>Ajoute ta première vente dans la caisse. Le bilan se remplit tout seul. Tu changes de téléphone ? Retrouve tes données dans « Retrouver mes données », plus bas.</p><button class="btn" data-go="caisse">Ajouter une vente</button></div>';
+      body.innerHTML = introHtml() + '<div class="card empty"><strong>Rien d\'enregistré pour l\'instant.</strong><p>Ajoute ta première vente dans la caisse. Le bilan se remplit tout seul. Tu changes de téléphone ? Retrouve tes données dans « Retrouver mes données », plus bas.</p><button class="btn" data-go="caisse">Ajouter une vente</button></div>';
       return;
     }
-    var start = periodStart(ui.period);
-    var list = state.entries.filter(function(e){ return e.ts >= start; });
+    var list = getPeriodList();
     var v = sum(list, 'v'), a = sum(list, 'a'), profit = v - a;
     var debts = totalDebts();
 
     var html = (backupDue() ? '<div class="card" style="border:2px solid var(--accent)"><div class="name" style="font-weight:800">Pense à sauvegarder tes données</div><p style="color:var(--muted);margin:4px 0 10px">Si tu perds ou changes de téléphone, tu perds tout.</p><button class="btn small" data-bk="goto">Sauvegarder maintenant</button></div>' : '') +
-      '<div class="hero"><div class="lbl">Bénéfice ' + periodText[ui.period] + '</div>' +
+      '<div class="hero"><div class="lbl">Bénéfice ' + periodLabel() + '</div>' +
       '<div class="big' + (profit < 0 ? ' neg' : '') + '">' + fmt(profit) + '</div>' +
       '<div class="two"><div><span>Ventes</span><strong>' + fmt(v) + '</strong></div><div><span>Dépenses</span><strong>' + fmt(a) + '</strong></div></div></div>' +
       '<p class="hero-note">Bénéfice = ventes moins dépenses. Une vente à crédit compte dès qu\'elle est faite.</p>';
@@ -554,7 +675,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     });
     var top = Object.keys(groups).map(function(k){ return groups[k]; }).sort(function(x, y){ return y.amt - x.amt; }).slice(0, 5);
     if (top.length) {
-      html += '<div class="card"><div class="name" style="font-weight:800;margin-bottom:4px">Ce qui rapporte le plus ' + periodText[ui.period] + '</div>';
+      html += '<div class="card"><div class="name" style="font-weight:800;margin-bottom:4px">Ce qui rapporte le plus ' + periodLabel() + '</div>';
       top.forEach(function(p){
         html += '<div class="list-row"><div><div class="name">' + esc(p.name) + '</div><div class="sub">' + (Math.round(p.qty * 100) / 100) + ' vendu(s)</div></div><div class="amt">' + fmt(p.amt) + '</div></div>';
       });
@@ -724,7 +845,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     var d = ui.bkPending; if (!d) return;
     var c = cleanState(d);
     state.cur = c.cur; state.entries = c.entries; state.clients = c.clients; state.payments = c.payments;
-    state.rates = c.rates; state.products = c.products; state.pays = c.pays; state.lastBackup = c.lastBackup;
+    state.rates = c.rates; state.products = c.products; state.pays = c.pays; state.lastBackup = c.lastBackup; state.introSeen = true;
     save();
     ui.bkPending = null; ui.stOpen = null; ui.payOpen = null;
     $('#bkConfirm').innerHTML = ''; $('#bkPaste').value = ''; $('#bkFile').value = '';
@@ -1079,6 +1200,13 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     if (t.dataset.period) {
       ui.period = t.dataset.period;
       $$('#periodSeg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.period === ui.period ? 'true' : 'false'); });
+      var box = $('#customDateBox');
+      box.hidden = (ui.period !== 'custom');
+      if (ui.period === 'custom' && !ui.customDate) {
+        var y = new Date(); y.setDate(y.getDate() - 1);
+        ui.customDate = isoDate(y);
+        $('#customDate').value = ui.customDate;
+      }
       return renderBilan();
     }
     if (t.dataset.kind) return setKind(t.dataset.kind);
@@ -1088,6 +1216,18 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
     if (t.id === 'stSave') return saveProduct();
     if (t.dataset.st) return stockAction(t.dataset.st, t.dataset.id);
     if (t.id === 'bkShare') return bkShare();
+    if (t.id === 'helpBtn') { $('#helpOverlay').hidden = false; return; }
+    if (t.id === 'helpClose') { $('#helpOverlay').hidden = true; return; }
+    if (t.id === 'reportBtn') {
+      if (!state.entries.length) { toast('Rien à montrer pour l\u2019instant.'); return; }
+      renderReport(); $('#reportOverlay').hidden = false; return;
+    }
+    if (t.id === 'reportClose') { $('#reportOverlay').hidden = true; return; }
+    if (t.id === 'reportPrint') { window.print(); return; }
+    if (t.id === 'introOk') { state.introSeen = true; save(); renderBilan(); return; }
+    if (t.id === 'bkMoreToggle') { var mb = $('#bkMoreBox'); mb.hidden = !mb.hidden; return; }
+    if (t.id === 'bkRestoreToggle') { var rb = $('#bkRestoreBox'); rb.hidden = !rb.hidden; return; }
+    if (t.id === 'bkPasteToggle') { var pb2 = $('#bkPasteBox'); pb2.hidden = !pb2.hidden; if (!pb2.hidden) $('#bkPaste').focus(); return; }
     if (t.id === 'bkDownload') return bkDownload();
     if (t.id === 'bkCopy') return bkCopy();
     if (t.id === 'bkRestore') return prepareRestore($('#bkPaste').value);
@@ -1149,6 +1289,12 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
   $('#fAmt').addEventListener('input', function(){ ui.amtAuto = false; });
   window.addEventListener('online', updateNet);
   window.addEventListener('offline', updateNet);
+  $('#customDate').addEventListener('change', function(e){
+    var v = e.target.value;
+    var today = isoDate(new Date());
+    if (v > today) { v = today; e.target.value = v; }
+    ui.customDate = v; renderBilan();
+  });
   $('#cvAmt').addEventListener('input', updateChange);
   $('#cvRate').addEventListener('input', onRateInput);
   $('#cvFrom').addEventListener('change', renderChange);
@@ -1158,6 +1304,7 @@ select.cvs{width:100%;height:54px;padding:0 10px;border:2px solid var(--line);bo
   });
 
   /* ---------- Démarrage ---------- */
+  $('#customDate').max = isoDate(new Date());
   load();
   $('#cur').value = state.cur;
   setKind('v');

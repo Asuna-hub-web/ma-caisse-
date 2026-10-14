@@ -1,9 +1,8 @@
-// Pour publier une nouvelle version : changer ce numéro (v2 -> v3 ...) et envoyer index.html + sw.js
-const CACHE = 'ma-caisse-v2';
+// Pour publier une nouvelle version : changer ce numéro (v3 -> v4 ...) et envoyer index.html + sw.js
+const CACHE = 'ma-caisse-v4';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
-  // Pas de skipWaiting ici : la nouvelle version attend que la personne touche « Mettre à jour ».
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)));
 });
 
